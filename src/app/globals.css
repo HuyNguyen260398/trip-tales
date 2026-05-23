@@ -1,0 +1,7 @@
+/* Tailwind v4: preflight + utilities. Triptales uses a fixed dark theme applied
+   via utility classes on <html>/<body> in layout.tsx (no light/dark switch), so
+   the scaffold's :root color variables, dark-mode media query, and body
+   background/font rules were removed. In v4 an unlayered `body { background }`
+   overrides layered utilities like `bg-neutral-950`, which is exactly what we
+   want to avoid here. */
+@import "tailwindcss";

@@ -52,13 +52,9 @@ yarn-error.log*
 *.swp
 *.swo
 
-# PWA (next-pwa generated service worker artifacts)
-/public/sw.js
-/public/workbox-*.js
-/public/worker-*.js
-/public/sw.js.map
-/public/workbox-*.js.map
-/public/worker-*.js.map
+# PWA: the M0 service worker (public/sw.js) is hand-written and committed, so it
+# is intentionally NOT ignored. If we later adopt next-pwa, re-add ignores for
+# its generated artifacts: /public/workbox-*.js, /public/worker-*.js, *.map.
 
 # Capacitor (Phase 2 native shell)
 /ios/App/Pods
