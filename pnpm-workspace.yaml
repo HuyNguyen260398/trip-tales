@@ -1,0 +1,9 @@
+# pnpm blocks packages' install-time build scripts by default (supply-chain
+# safety). allowBuilds records our decision per package:
+#   - unrs-resolver: native import resolver used by eslint-config-next; allow it
+#     to build so linting works locally and on Amplify's Linux builders.
+#   - sharp: only powers next/image optimization, which static export disables
+#     (images.unoptimized), so it never runs. Not built.
+allowBuilds:
+  sharp: false
+  unrs-resolver: true
