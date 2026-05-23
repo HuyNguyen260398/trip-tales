@@ -16,8 +16,12 @@
 
 - `package.json`, `tsconfig.json`, `next.config.ts` — project config (created by scaffold, then edited)
 - `next.config.ts` — set `output: 'export'`, `images.unoptimized: true`
-- `src/app/layout.tsx` — root layout: metadata, viewport, manifest link, safe-area
+- `src/app/layout.tsx` — root layout: metadata, viewport, manifest link, safe-area, wraps pages in `AppShell`
 - `src/app/page.tsx` — placeholder home ("Triptales")
+- `src/components/AppShell.tsx` — responsive frame (desktop sidebar + mobile bottom nav)
+- `src/components/Sidebar.tsx` — desktop left nav (`lg:`)
+- `src/components/BottomNav.tsx` — mobile bottom nav (`lg:hidden`)
+- `src/components/nav.ts` — primary nav items (Trips now; Settings added in M6)
 - `vitest.config.ts` — test runner config
 - `src/test/setup.ts` — jsdom + fake-indexeddb global setup
 - `src/app/page.test.tsx` — smoke test for the home page
@@ -39,9 +43,9 @@
 Run in the repo root (the `.` keeps existing files like `triptales-web-mvp-plan.md` and `CLAUDE.md`):
 
 ```bash
-npx create-next-app@latest . \
+pnpm create next-app@latest . \
   --typescript --tailwind --app --src-dir --eslint \
-  --import-alias "@/*" --no-turbopack --use-npm
+  --import-alias "@/*" --no-turbopack --use-pnpm
 ```
 
 If prompted to proceed in a non-empty directory, accept.
@@ -50,7 +54,7 @@ If prompted to proceed in a non-empty directory, accept.
 
 Run:
 ```bash
-npm run dev
+pnpm dev
 ```
 Expected: server starts on `http://localhost:3000`, default page renders. Stop it with Ctrl-C.
 
@@ -90,7 +94,7 @@ export default nextConfig;
 
 Run:
 ```bash
-npm run build
+pnpm build
 ```
 Expected: build succeeds and an `out/` directory is created containing `index.html`.
 
@@ -122,7 +126,7 @@ git commit -m "chore: configure Next.js static export (output: export)"
 - [ ] **Step 1: Install test deps**
 
 ```bash
-npm install -D vitest @vitejs/plugin-react jsdom \
+pnpm add -D vitest @vitejs/plugin-react jsdom \
   @testing-library/react @testing-library/jest-dom \
   @testing-library/user-event fake-indexeddb
 ```
@@ -177,14 +181,14 @@ In `package.json`, add to `"scripts"`:
 
 Run:
 ```bash
-npm test
+pnpm test
 ```
 Expected: Vitest reports "No test files found" (exit code may be non-zero) — this confirms the runner is wired. The next task adds a real test.
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add package.json vitest.config.ts src/test/setup.ts package-lock.json
+git add package.json vitest.config.ts src/test/setup.ts pnpm-lock.yaml
 git commit -m "test: add Vitest + jsdom + fake-indexeddb harness"
 ```
 
@@ -219,7 +223,7 @@ describe("Home", () => {
 
 Run:
 ```bash
-npx vitest run src/app/page.test.tsx
+pnpm exec vitest run src/app/page.test.tsx
 ```
 Expected: FAIL — the default scaffold page has no "Triptales" heading.
 
@@ -244,7 +248,7 @@ export default function Home() {
 
 Run:
 ```bash
-npx vitest run src/app/page.test.tsx
+pnpm exec vitest run src/app/page.test.tsx
 ```
 Expected: PASS (1 test).
 
@@ -257,17 +261,127 @@ git commit -m "feat: minimal Triptales home shell with smoke test"
 
 ---
 
-## Task 5: Root layout with PWA + safe-area metadata
+## Task 5: Root layout + responsive App Shell
+
+The App Shell is the adaptive frame the whole app lives in: a left sidebar on
+desktop (`lg:`), a bottom nav on mobile (`lg:hidden`). One component tree driven by
+Tailwind breakpoints — see the README's "Responsive layout (adaptive shell)".
 
 **Files:**
+- Create: `src/components/nav.ts`, `src/components/Sidebar.tsx`, `src/components/BottomNav.tsx`, `src/components/AppShell.tsx`
 - Modify: `src/app/layout.tsx`
 
-- [ ] **Step 1: Replace the root layout**
+- [ ] **Step 1: Define the primary nav items**
+
+Create `src/components/nav.ts`. Map and Reel are trip-scoped (linked from the trip
+screen), so the global nav starts with just Trips; M6 appends Settings.
+
+```ts
+export interface NavItem {
+  href: string;
+  label: string;
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Trips" },
+  // M6 adds: { href: "/settings", label: "Settings" },
+];
+```
+
+- [ ] **Step 2: Desktop sidebar**
+
+Create `src/components/Sidebar.tsx` (shown only at `lg:` and up):
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { NAV_ITEMS } from "./nav";
+
+export default function Sidebar() {
+  const pathname = usePathname();
+  return (
+    <aside className="hidden w-60 shrink-0 flex-col gap-1 border-r border-neutral-800 p-4 pt-[max(1rem,env(safe-area-inset-top))] lg:flex">
+      <span className="mb-4 px-2 text-lg font-semibold tracking-tight">Triptales</span>
+      {NAV_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={`rounded-lg px-3 py-2 text-sm ${
+            pathname === item.href ? "bg-neutral-800 font-medium" : "text-neutral-400 hover:bg-neutral-900"
+          }`}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </aside>
+  );
+}
+```
+
+- [ ] **Step 3: Mobile bottom nav**
+
+Create `src/components/BottomNav.tsx` (hidden at `lg:` and up):
+
+```tsx
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { NAV_ITEMS } from "./nav";
+
+export default function BottomNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-neutral-800 bg-neutral-950/90 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      {NAV_ITEMS.map((item) => (
+        <Link
+          key={item.href}
+          href={item.href}
+          className={`flex-1 py-3 text-center text-xs ${
+            pathname === item.href ? "font-medium text-neutral-50" : "text-neutral-500"
+          }`}
+        >
+          {item.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+```
+
+- [ ] **Step 4: The App Shell**
+
+Create `src/components/AppShell.tsx`. It composes the two navs around the page
+content. Pages keep their own `<main>`, so the shell wraps content in a plain
+`<div>` (no nested `<main>`). The content gets bottom padding on mobile so it isn't
+hidden behind the fixed bottom nav.
+
+```tsx
+import Sidebar from "./Sidebar";
+import BottomNav from "./BottomNav";
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="lg:flex lg:min-h-dvh">
+      <Sidebar />
+      <div className="flex-1 pb-[max(4rem,env(safe-area-inset-bottom))] lg:pb-0">
+        {children}
+      </div>
+      <BottomNav />
+    </div>
+  );
+}
+```
+
+- [ ] **Step 5: Wrap the root layout in the App Shell**
 
 Replace `src/app/layout.tsx`:
 
 ```tsx
 import type { Metadata, Viewport } from "next";
+import AppShell from "@/components/AppShell";
 import RegisterSW from "@/components/RegisterSW";
 import "./globals.css";
 
@@ -289,7 +403,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="bg-neutral-950 text-neutral-50 antialiased">
-        {children}
+        <AppShell>{children}</AppShell>
         <RegisterSW />
       </body>
     </html>
@@ -297,19 +411,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 2: Verify build still succeeds**
+- [ ] **Step 6: Verify build still succeeds**
 
 Run:
 ```bash
-npm run build
+pnpm build
 ```
 Expected: build succeeds (the `RegisterSW` import resolves after the next task — if you run this step before Task 6, create the file first).
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add src/app/layout.tsx
-git commit -m "feat: root layout with PWA + safe-area viewport metadata"
+git add src/app/layout.tsx src/components/AppShell.tsx src/components/Sidebar.tsx src/components/BottomNav.tsx src/components/nav.ts
+git commit -m "feat: responsive App Shell (desktop sidebar + mobile bottom nav) + root layout"
 ```
 
 ---
@@ -388,7 +502,7 @@ export default function RegisterSW() {
 
 Run:
 ```bash
-npm run build
+pnpm build
 test -f out/sw.js && echo "SW PRESENT"
 ```
 Expected: `SW PRESENT` (files in `public/` are copied verbatim into `out/`).
@@ -419,7 +533,7 @@ Create `public/manifest.webmanifest`:
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0a0a0a",
   "theme_color": "#0a0a0a",
   "icons": [
@@ -449,7 +563,7 @@ cp public/icons/icon-512.png public/icons/maskable-512.png
 
 Run:
 ```bash
-npm run build
+pnpm build
 node -e "JSON.parse(require('fs').readFileSync('out/manifest.webmanifest','utf8')); console.log('MANIFEST OK')"
 ```
 Expected: `MANIFEST OK`
@@ -478,10 +592,11 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - corepack enable
+        - pnpm install --frozen-lockfile
     build:
       commands:
-        - npm run build
+        - pnpm build
   artifacts:
     baseDirectory: out
     files:
@@ -534,9 +649,17 @@ Launch the installed app once (to populate the cache), then enable **Airplane
 Mode** and relaunch. Expected: the Triptales home shell still loads (served by the
 service worker), not the Safari "no connection" page.
 
-- [ ] **Step 5: Record the result**
+- [ ] **Step 5: Verify the desktop layout**
 
-If all four pass, M0 is **done**. If install or offline fails, check: manifest
+Open the same deploy URL in a **desktop browser** (or DevTools at ≥`lg` width,
+1024px+). Expected: the **left sidebar** ("Triptales" + Trips) is visible and the
+content fills the wider area beside it — not a phone-width column. Narrow the window
+below `lg`: the sidebar hides and the **bottom nav** appears. This confirms the
+adaptive App Shell works in both directions.
+
+- [ ] **Step 6: Record the result**
+
+If all of the above pass, M0 is **done**. If install or offline fails, check: manifest
 served at `/manifest.webmanifest`, `display: "standalone"`, valid icons, and that
 the SW registered (Safari → Settings → Advanced → Web Inspector, or test via
 desktop Chrome DevTools → Application → Service Workers as a first pass).
@@ -548,7 +671,11 @@ desktop Chrome DevTools → Application → Service Workers as a first pass).
 - **Spec coverage:** Next.js + TS + Tailwind (Task 1), `output: 'export'` (Task 2),
   PWA manifest (Task 7), deploy to Amplify (Task 8), install-to-home-screen +
   offline confirmed on iPhone (Task 9). All M0 plan items covered.
-- **Carries forward:** the Vitest harness (Task 3) and `out/` static-export build
-  (Task 2) are reused by every later milestone.
+- **Carries forward:** the Vitest harness (Task 3), the `out/` static-export build
+  (Task 2), and the `AppShell` responsive frame (Task 5) are reused by every later
+  milestone.
+- **Responsive + tooling:** the App Shell gives every screen a desktop sidebar +
+  mobile bottom nav from one component tree (Task 5), verified in both viewports
+  (Task 9); pnpm is the package manager throughout (Tasks 1, 3, 8).
 - **Constraint check:** no server actions, no route handlers, `output: 'export'`
   set from day one — matches CLAUDE.md.

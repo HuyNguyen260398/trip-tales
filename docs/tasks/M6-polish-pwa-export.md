@@ -82,7 +82,7 @@ if (groups.length === 0)
 - [ ] **Step 3: Verify suite + build; commit**
 
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 git add src/components/states.tsx src/components/DayTimeline.tsx src/components/TripList.tsx src/components/PhotoMap.tsx src/components/ReelBuilder.tsx
 git commit -m "feat: shared empty/error/loading state components, adopted across screens"
 ```
@@ -138,7 +138,7 @@ describe("buildTripManifest", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/export.test.ts
+pnpm exec vitest run src/lib/export.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -203,21 +203,21 @@ export async function exportTrip(tripId: string): Promise<Blob> {
 - [ ] **Step 4: Install fflate**
 
 ```bash
-npm install fflate
+pnpm add fflate
 ```
 
 - [ ] **Step 5: Run to verify it passes**
 
 Run:
 ```bash
-npx vitest run src/lib/export.test.ts
+pnpm exec vitest run src/lib/export.test.ts
 ```
 Expected: PASS (2 tests).
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/lib/export.ts src/lib/export.test.ts package.json package-lock.json
+git add src/lib/export.ts src/lib/export.test.ts package.json pnpm-lock.yaml
 git commit -m "feat: trip export — manifest + zip of reels/media (TDD)"
 ```
 
@@ -279,7 +279,7 @@ in the Edit/Delete button row.
 - [ ] **Step 3: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/ExportButton.tsx src/app/trip/page.tsx
 git commit -m "feat: export trip as a shareable zip from the trip page"
 ```
@@ -290,7 +290,7 @@ git commit -m "feat: export trip as a shareable zip from the trip page"
 
 **Files:**
 - Create: `src/components/StorageMeter.tsx`, `src/app/settings/page.tsx`
-- Modify: `src/app/page.tsx` (settings link)
+- Modify: `src/components/nav.ts` (add Settings to the primary nav)
 
 - [ ] **Step 1: Implement the storage meter**
 
@@ -352,7 +352,7 @@ import StorageMeter from "@/components/StorageMeter";
 export default function SettingsPage() {
   const router = useRouter();
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] lg:max-w-4xl">
       <button onClick={() => router.push("/")} className="self-start text-sm text-neutral-400">
         ← Home
       </button>
@@ -367,17 +367,25 @@ export default function SettingsPage() {
 }
 ```
 
-- [ ] **Step 3: Link settings from the home header**
+- [ ] **Step 3: Add Settings to the primary nav**
 
-In `src/app/page.tsx`, add a small settings link/button in the header (e.g. a
-gear linking to `/settings`).
+The adaptive shell (M0) reads `NAV_ITEMS` from `src/components/nav.ts`. Now that the
+`/settings` route exists, append it so it appears in both the desktop sidebar and
+the mobile bottom nav. In `src/components/nav.ts`:
+
+```ts
+export const NAV_ITEMS: NavItem[] = [
+  { href: "/", label: "Trips" },
+  { href: "/settings", label: "Settings" },
+];
+```
 
 - [ ] **Step 4: Verify export builds the route; commit**
 
 ```bash
-npm run build
+pnpm build
 test -f out/settings/index.html && echo "SETTINGS ROUTE EXPORTED"
-git add src/components/StorageMeter.tsx src/app/settings/page.tsx src/app/page.tsx
+git add src/components/StorageMeter.tsx src/app/settings/page.tsx src/components/nav.ts
 git commit -m "feat: settings screen with storage usage + eviction guidance"
 ```
 
@@ -483,7 +491,7 @@ self.addEventListener("fetch", (event) => {
 
 Run:
 ```bash
-npm run build
+pnpm build
 node -e "const m=require('./out/precache-manifest.json'); console.log('PRECACHE', m.length, 'assets'); if(!m.length) process.exit(1)"
 ```
 Expected: `PRECACHE <n> assets` with n > 0.
@@ -512,7 +520,7 @@ is needed.
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/music.ts public/music
 git commit -m "feat: expand bundled CC0 music catalogue (multi-track picker)"
 ```
@@ -540,9 +548,14 @@ git commit -m "feat: expand bundled CC0 music catalogue (multi-track picker)"
   screens or crashes.
 - [ ] **Step 6 (persistence):** Close and reopen; confirm everything persists
   (best-effort), and that the export zip is the documented durable backup.
+- [ ] **Step 7 (desktop):** Open the deployed site in a desktop browser. Confirm the
+  left sidebar nav (Trips, Settings) is present, trip cards lay out in multiple
+  columns, the day grid widens, the map fills the content area, and the reel builder
+  shows controls beside the preview — the same flows should feel native to a wide
+  screen, not a stretched phone column.
 
-If the full DoD flow works on your installed iPhone app, **M6 — and Phase 1 — is
-done.**
+If the full DoD flow works on your installed iPhone app **and** the desktop layout
+holds up, **M6 — and Phase 1 — is done.**
 
 ---
 
@@ -555,6 +568,9 @@ done.**
 - **Type consistency:** `TripManifest` reuses `Trip`/`Media`/`Reel`; export reads
   via `listMediaByTrip`/`listReelsByTrip` (M2/M4) and `readBlob` (M2). No data-model
   changes.
+- **Responsive:** Settings joins the primary nav (desktop sidebar + mobile bottom
+  nav) and uses the shared container; the shared empty/error/loading states render
+  consistently across the desktop shell and on phones.
 - **Constraint check:** export, zip, and SW precache are all client-side; the
   manifest is the durable artifact compensating for best-effort web storage exactly
   as the plan's Key Risks require. Static-export safe; SW skips cross-origin
