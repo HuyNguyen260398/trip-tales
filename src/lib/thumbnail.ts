@@ -6,8 +6,8 @@ function isHeic(file: File): boolean {
 }
 
 export async function makeThumbnail(file: File): Promise<Blob> {
+  let source: Blob = file;
   try {
-    let source: Blob = file;
     if (isHeic(file)) {
       const heic2any = (await import("heic2any")).default;
       const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: QUALITY });
@@ -33,6 +33,6 @@ export async function makeThumbnail(file: File): Promise<Blob> {
       )
     );
   } catch {
-    return file;
+    return source;
   }
 }

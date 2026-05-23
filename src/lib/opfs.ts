@@ -1,5 +1,8 @@
 async function dirHandle(): Promise<FileSystemDirectoryHandle> {
-  const root: FileSystemDirectoryHandle = await navigator.storage.getDirectory();
+  if (!navigator.storage?.getDirectory) {
+    throw new Error("OPFS is not supported in this browser");
+  }
+  const root = await navigator.storage.getDirectory();
   return root.getDirectoryHandle("media", { create: true });
 }
 

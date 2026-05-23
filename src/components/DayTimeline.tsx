@@ -25,7 +25,7 @@ export default function DayTimeline({ tripId }: { tripId: string }) {
           </h2>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {g.items.map((m) => (
-              <button key={m.id} onClick={() => setEditing(m)} className="text-left">
+              <button key={m.id} onClick={() => setEditing(m)} className="text-left" aria-label={`Edit ${m.type} from ${m.dayKey}`}>
                 <MediaThumb media={m} />
               </button>
             ))}

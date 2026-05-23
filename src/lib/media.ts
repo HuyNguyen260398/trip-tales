@@ -33,8 +33,10 @@ export async function importFile(
   const ext = file.name.split(".").pop() ?? "bin";
 
   const opfsPath = await deps.writeBlob(`${id}.${ext}`, file);
-  const thumb = await deps.makeThumbnail(file);
-  const thumbPath = await deps.writeBlob(`${id}.thumb.jpg`, thumb);
+  const isVideo = file.type.startsWith("video/");
+  const thumbPath = isVideo
+    ? opfsPath
+    : await deps.writeBlob(`${id}.thumb.jpg`, await deps.makeThumbnail(file));
 
   const record: Media = {
     id,
@@ -77,7 +79,12 @@ export async function mediaByDay(tripId: string): Promise<DayGroup[]> {
   const all = await listMediaByTrip(tripId);
   const map = new Map<string, Media[]>();
   for (const m of all) {
-    (map.get(m.dayKey) ?? map.set(m.dayKey, []).get(m.dayKey)!).push(m);
+    let bucket = map.get(m.dayKey);
+    if (!bucket) {
+      bucket = [];
+      map.set(m.dayKey, bucket);
+    }
+    bucket.push(m);
   }
   return [...map.keys()]
     .sort()

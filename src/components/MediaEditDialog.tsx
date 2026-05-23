@@ -65,8 +65,8 @@ export default function MediaEditDialog({
             await updateMedia(media.id, {
               takenAt,
               dayKey: date,
-              lat: lat ? Number(lat) : undefined,
-              lng: lng ? Number(lng) : undefined,
+              lat: Number.isFinite(Number(lat)) ? Number(lat) : undefined,
+              lng: Number.isFinite(Number(lng)) ? Number(lng) : undefined,
             });
             onClose();
           }}

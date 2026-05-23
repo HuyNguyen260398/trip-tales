@@ -19,9 +19,12 @@ export default function MediaImporter({ tripId }: { tripId: string }) {
           const files = Array.from(e.target.files ?? []);
           if (!files.length) return;
           setProgress({ done: 0, total: files.length });
-          await importMedia(tripId, files, (done, total) => setProgress({ done, total }));
-          setProgress(null);
-          if (inputRef.current) inputRef.current.value = "";
+          try {
+            await importMedia(tripId, files, (done, total) => setProgress({ done, total }));
+          } finally {
+            setProgress(null);
+            if (inputRef.current) inputRef.current.value = "";
+          }
         }}
       />
       <button

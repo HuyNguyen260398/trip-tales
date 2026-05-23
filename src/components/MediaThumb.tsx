@@ -8,12 +8,20 @@ export default function MediaThumb({ media }: { media: Media }) {
   const [url, setUrl] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     let revoked: string | null = null;
-    objectUrl(media.thumbPath).then((u) => {
-      revoked = u;
-      setUrl(u);
-    });
+    objectUrl(media.thumbPath)
+      .then((u) => {
+        if (cancelled) {
+          URL.revokeObjectURL(u);
+          return;
+        }
+        revoked = u;
+        setUrl(u);
+      })
+      .catch(() => {});
     return () => {
+      cancelled = true;
       if (revoked) URL.revokeObjectURL(revoked);
     };
   }, [media.thumbPath]);
