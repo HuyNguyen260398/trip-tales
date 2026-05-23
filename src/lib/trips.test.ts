@@ -45,8 +45,13 @@ describe("trips CRUD", () => {
       id: "m1", tripId: t.id, dayKey: "2026-01-01", takenAt: 0,
       type: "photo", opfsPath: "p", thumbPath: "tp",
     });
+    await db.reels.add({
+      id: "r1", tripId: t.id, dayKey: "2026-01-01", opfsPath: "reel.webm",
+      musicId: "m1", createdAt: 0, durationSec: 30,
+    });
     await deleteTrip(t.id);
     expect(await getTrip(t.id)).toBeUndefined();
     expect(await db.media.where("tripId").equals(t.id).count()).toBe(0);
+    expect(await db.reels.where("tripId").equals(t.id).count()).toBe(0);
   });
 });
