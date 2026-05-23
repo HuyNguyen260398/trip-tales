@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveQuery } from "@/hooks/useLiveQuery";
 import { getTrip, updateTrip, deleteTrip } from "@/lib/trips";
 import TripForm from "@/components/TripForm";
+import MediaImporter from "@/components/MediaImporter";
+import DayTimeline from "@/components/DayTimeline";
 
 function TripDetail() {
   const router = useRouter();
@@ -35,7 +37,8 @@ function TripDetail() {
         <>
           <h1 className="text-2xl font-semibold">{trip.name}</h1>
           <p className="text-neutral-500">{trip.startDate} → {trip.endDate}</p>
-          {/* Day timeline + import land here in M2; map link in M3. */}
+          <MediaImporter tripId={trip.id} />
+          <DayTimeline tripId={trip.id} />
           <div className="mt-2 flex gap-2">
             <button onClick={() => setEditing(true)} className="rounded-xl bg-neutral-800 px-4 py-2 text-sm">
               Edit
