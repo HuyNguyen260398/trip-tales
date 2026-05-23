@@ -9,12 +9,12 @@ import TripForm from "@/components/TripForm";
 function TripDetail() {
   const router = useRouter();
   const id = useSearchParams().get("id") ?? "";
-  const trip = useLiveQuery(() => (id ? getTrip(id) : undefined), [id]);
+  const trip = useLiveQuery(() => (id ? getTrip(id) : undefined), [id], null);
   const [editing, setEditing] = useState(false);
 
   if (!id) return <p className="text-neutral-500">No trip selected.</p>;
-  if (trip === undefined) return <p className="text-neutral-500">Loading…</p>;
-  if (trip === null || !trip) return <p className="text-neutral-500">Trip not found.</p>;
+  if (trip === null) return <p className="text-neutral-500">Loading…</p>;
+  if (trip === undefined) return <p className="text-neutral-500">Trip not found.</p>;
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] lg:max-w-4xl">
