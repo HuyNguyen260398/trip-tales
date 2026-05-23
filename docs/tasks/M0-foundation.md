@@ -38,7 +38,7 @@
 **Files:**
 - Create: project root files via `create-next-app`
 
-- [ ] **Step 1: Scaffold**
+- [x] **Step 1: Scaffold**
 
 Run in the repo root (the `.` keeps existing files like `triptales-web-mvp-plan.md` and `CLAUDE.md`):
 
@@ -50,7 +50,7 @@ pnpm create next-app@latest . \
 
 If prompted to proceed in a non-empty directory, accept.
 
-- [ ] **Step 2: Verify dev server boots**
+- [x] **Step 2: Verify dev server boots**
 
 Run:
 ```bash
@@ -58,7 +58,7 @@ pnpm dev
 ```
 Expected: server starts on `http://localhost:3000`, default page renders. Stop it with Ctrl-C.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -72,7 +72,7 @@ git commit -m "chore: scaffold Next.js app (TS, Tailwind, App Router, src dir)"
 **Files:**
 - Modify: `next.config.ts`
 
-- [ ] **Step 1: Set static export config**
+- [x] **Step 1: Set static export config**
 
 Replace `next.config.ts` with:
 
@@ -90,7 +90,7 @@ const nextConfig: NextConfig = {
 export default nextConfig;
 ```
 
-- [ ] **Step 2: Verify the export build produces static files**
+- [x] **Step 2: Verify the export build produces static files**
 
 Run:
 ```bash
@@ -104,11 +104,11 @@ test -f out/index.html && echo "STATIC EXPORT OK"
 ```
 Expected output: `STATIC EXPORT OK`
 
-- [ ] **Step 3: Ignore build artifacts**
+- [x] **Step 3: Ignore build artifacts**
 
 Ensure `.gitignore` contains `/out` (create the line if missing). `create-next-app` already ignores `/.next` and `/node_modules`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add next.config.ts .gitignore
@@ -123,7 +123,7 @@ git commit -m "chore: configure Next.js static export (output: export)"
 - Create: `vitest.config.ts`, `src/test/setup.ts`
 - Modify: `package.json` (scripts)
 
-- [ ] **Step 1: Install test deps**
+- [x] **Step 1: Install test deps**
 
 ```bash
 pnpm add -D vitest @vitejs/plugin-react jsdom \
@@ -131,7 +131,7 @@ pnpm add -D vitest @vitejs/plugin-react jsdom \
   @testing-library/user-event fake-indexeddb
 ```
 
-- [ ] **Step 2: Create the Vitest config**
+- [x] **Step 2: Create the Vitest config**
 
 Create `vitest.config.ts`:
 
@@ -153,7 +153,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 3: Create the test setup file**
+- [x] **Step 3: Create the test setup file**
 
 Create `src/test/setup.ts`:
 
@@ -168,7 +168,7 @@ afterEach(() => {
 });
 ```
 
-- [ ] **Step 4: Add the test script**
+- [x] **Step 4: Add the test script**
 
 In `package.json`, add to `"scripts"`:
 
@@ -177,7 +177,7 @@ In `package.json`, add to `"scripts"`:
 "test:watch": "vitest"
 ```
 
-- [ ] **Step 5: Verify Vitest runs (no tests yet)**
+- [x] **Step 5: Verify Vitest runs (no tests yet)**
 
 Run:
 ```bash
@@ -185,7 +185,7 @@ pnpm test
 ```
 Expected: Vitest reports "No test files found" (exit code may be non-zero) — this confirms the runner is wired. The next task adds a real test.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add package.json vitest.config.ts src/test/setup.ts pnpm-lock.yaml
@@ -200,7 +200,7 @@ git commit -m "test: add Vitest + jsdom + fake-indexeddb harness"
 - Test: `src/app/page.test.tsx`
 - Modify: `src/app/page.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `src/app/page.test.tsx`:
 
@@ -219,7 +219,7 @@ describe("Home", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run:
 ```bash
@@ -227,7 +227,7 @@ pnpm exec vitest run src/app/page.test.tsx
 ```
 Expected: FAIL — the default scaffold page has no "Triptales" heading.
 
-- [ ] **Step 3: Replace the home page with a minimal shell**
+- [x] **Step 3: Replace the home page with a minimal shell**
 
 Replace `src/app/page.tsx`:
 
@@ -244,7 +244,7 @@ export default function Home() {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run:
 ```bash
@@ -252,7 +252,7 @@ pnpm exec vitest run src/app/page.test.tsx
 ```
 Expected: PASS (1 test).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/page.tsx src/app/page.test.tsx
@@ -271,7 +271,7 @@ Tailwind breakpoints — see the README's "Responsive layout (adaptive shell)".
 - Create: `src/components/nav.ts`, `src/components/Sidebar.tsx`, `src/components/BottomNav.tsx`, `src/components/AppShell.tsx`
 - Modify: `src/app/layout.tsx`
 
-- [ ] **Step 1: Define the primary nav items**
+- [x] **Step 1: Define the primary nav items**
 
 Create `src/components/nav.ts`. Map and Reel are trip-scoped (linked from the trip
 screen), so the global nav starts with just Trips; M6 appends Settings.
@@ -288,7 +288,7 @@ export const NAV_ITEMS: NavItem[] = [
 ];
 ```
 
-- [ ] **Step 2: Desktop sidebar**
+- [x] **Step 2: Desktop sidebar**
 
 Create `src/components/Sidebar.tsx` (shown only at `lg:` and up):
 
@@ -320,7 +320,7 @@ export default function Sidebar() {
 }
 ```
 
-- [ ] **Step 3: Mobile bottom nav**
+- [x] **Step 3: Mobile bottom nav**
 
 Create `src/components/BottomNav.tsx` (hidden at `lg:` and up):
 
@@ -351,7 +351,7 @@ export default function BottomNav() {
 }
 ```
 
-- [ ] **Step 4: The App Shell**
+- [x] **Step 4: The App Shell**
 
 Create `src/components/AppShell.tsx`. It composes the two navs around the page
 content. Pages keep their own `<main>`, so the shell wraps content in a plain
@@ -375,7 +375,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 }
 ```
 
-- [ ] **Step 5: Wrap the root layout in the App Shell**
+- [x] **Step 5: Wrap the root layout in the App Shell**
 
 Replace `src/app/layout.tsx`:
 
@@ -411,7 +411,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-- [ ] **Step 6: Verify build still succeeds**
+- [x] **Step 6: Verify build still succeeds**
 
 Run:
 ```bash
@@ -419,7 +419,7 @@ pnpm build
 ```
 Expected: build succeeds (the `RegisterSW` import resolves after the next task — if you run this step before Task 6, create the file first).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/app/layout.tsx src/components/AppShell.tsx src/components/Sidebar.tsx src/components/BottomNav.tsx src/components/nav.ts
@@ -433,7 +433,7 @@ git commit -m "feat: responsive App Shell (desktop sidebar + mobile bottom nav) 
 **Files:**
 - Create: `public/sw.js`, `src/components/RegisterSW.tsx`
 
-- [ ] **Step 1: Create a minimal cache-first service worker**
+- [x] **Step 1: Create a minimal cache-first service worker**
 
 Create `public/sw.js`:
 
@@ -477,7 +477,7 @@ self.addEventListener("fetch", (event) => {
 });
 ```
 
-- [ ] **Step 2: Create the client registration component**
+- [x] **Step 2: Create the client registration component**
 
 Create `src/components/RegisterSW.tsx`:
 
@@ -498,7 +498,7 @@ export default function RegisterSW() {
 }
 ```
 
-- [ ] **Step 3: Verify build includes the service worker**
+- [x] **Step 3: Verify build includes the service worker**
 
 Run:
 ```bash
@@ -507,7 +507,7 @@ test -f out/sw.js && echo "SW PRESENT"
 ```
 Expected: `SW PRESENT` (files in `public/` are copied verbatim into `out/`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add public/sw.js src/components/RegisterSW.tsx
@@ -521,7 +521,7 @@ git commit -m "feat: offline-shell service worker + client registration"
 **Files:**
 - Create: `public/manifest.webmanifest`, `public/icons/icon-192.png`, `public/icons/icon-512.png`, `public/icons/maskable-512.png`
 
-- [ ] **Step 1: Create the manifest**
+- [x] **Step 1: Create the manifest**
 
 Create `public/manifest.webmanifest`:
 
@@ -544,7 +544,7 @@ Create `public/manifest.webmanifest`:
 }
 ```
 
-- [ ] **Step 2: Add icons**
+- [x] **Step 2: Add icons**
 
 Add three PNGs to `public/icons/` at the listed sizes. For a placeholder set, generate solid-colour icons with ImageMagick (replace later with real artwork):
 
@@ -559,7 +559,7 @@ cp public/icons/icon-512.png public/icons/maskable-512.png
 
 (If ImageMagick isn't installed: `brew install imagemagick`, or drop in any correctly-sized PNGs.)
 
-- [ ] **Step 3: Verify manifest is served and valid JSON**
+- [x] **Step 3: Verify manifest is served and valid JSON**
 
 Run:
 ```bash
@@ -568,7 +568,7 @@ node -e "JSON.parse(require('fs').readFileSync('out/manifest.webmanifest','utf8'
 ```
 Expected: `MANIFEST OK`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add public/manifest.webmanifest public/icons
@@ -582,7 +582,7 @@ git commit -m "feat: PWA manifest + install icons"
 **Files:**
 - Create: `amplify.yml`
 
-- [ ] **Step 1: Create the Amplify build spec**
+- [x] **Step 1: Create the Amplify build spec**
 
 Create `amplify.yml`:
 
@@ -606,7 +606,7 @@ frontend:
       - node_modules/**/*
 ```
 
-- [ ] **Step 2: Connect the repo (manual, one-time)**
+- [x] **Step 2: Connect the repo (manual, one-time)**
 
 In the AWS Amplify console: **Host web app → connect this Git repo → branch `main`**.
 Amplify auto-detects `amplify.yml`. Confirm the build's artifact base directory is
@@ -615,7 +615,7 @@ Amplify auto-detects `amplify.yml`. Confirm the build's artifact base directory 
 (Alternative for the DevOps path: provision with the Amplify CLI or a small CDK
 stack — Amplify Hosting is the only AWS resource Phase 1 needs.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add amplify.yml
