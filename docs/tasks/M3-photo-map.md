@@ -35,8 +35,8 @@
 - [ ] **Step 1: Install**
 
 ```bash
-npm install maplibre-gl supercluster
-npm install -D @types/supercluster
+pnpm add maplibre-gl supercluster
+pnpm add -D @types/supercluster
 ```
 
 - [ ] **Step 2: Import MapLibre CSS once**
@@ -50,8 +50,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 - [ ] **Step 3: Verify build; commit**
 
 ```bash
-npm run build
-git add package.json package-lock.json src/app/layout.tsx
+pnpm build
+git add package.json pnpm-lock.yaml src/app/layout.tsx
 git commit -m "chore: add maplibre-gl + supercluster"
 ```
 
@@ -112,7 +112,7 @@ describe("buildIndex", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/cluster.test.ts
+pnpm exec vitest run src/lib/cluster.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -164,7 +164,7 @@ export function centroid(media: Media[]): { lat: number; lng: number } | null {
 
 Run:
 ```bash
-npx vitest run src/lib/cluster.test.ts
+pnpm exec vitest run src/lib/cluster.test.ts
 ```
 Expected: PASS (4 tests).
 
@@ -211,7 +211,7 @@ this.version(2).stores({
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/db.ts
 git commit -m "feat: add geocache table (Dexie v2)"
 ```
@@ -270,7 +270,7 @@ describe("reverseGeocodeCached", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/geocode.test.ts
+pnpm exec vitest run src/lib/geocode.test.ts
 ```
 Expected: FAIL — modules not found.
 
@@ -347,7 +347,7 @@ export async function reverseGeocodeCached(lat: number, lng: number): Promise<st
 
 Run:
 ```bash
-npx vitest run src/lib/geocode.test.ts
+pnpm exec vitest run src/lib/geocode.test.ts
 ```
 Expected: PASS (3 tests).
 
@@ -409,7 +409,7 @@ export default function MediaPreview({
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/MediaPreview.tsx
 git commit -m "feat: full-size media preview overlay"
 ```
@@ -531,7 +531,7 @@ export default function PhotoMap({ tripId }: { tripId: string }) {
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/PhotoMap.tsx
 git commit -m "feat: clustered MapLibre photo map (tap cluster to zoom, pin to preview)"
 ```
@@ -560,6 +560,8 @@ function MapView() {
   if (!tripId) return <p className="p-6 text-neutral-500">No trip selected.</p>;
 
   return (
+    // Full-bleed: fills the content region beside the desktop sidebar; on mobile the
+    // translucent bottom nav floats over the map's bottom edge (Maps-app style).
     <main className="flex h-dvh flex-col">
       <header className="flex items-center gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button onClick={() => router.push(`/trip?id=${tripId}`)} className="text-sm text-neutral-400">
@@ -587,7 +589,7 @@ export default function MapPage() {
 
 Run:
 ```bash
-npm run build
+pnpm build
 test -f out/map/index.html && echo "MAP ROUTE EXPORTED"
 ```
 Expected: `MAP ROUTE EXPORTED`.
@@ -671,7 +673,7 @@ In the non-editing branch, just above `<MediaImporter ... />` add:
 
 Run:
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 ```
 Expected: all tests pass; export builds (`/map` and `/trip` present).
 
@@ -713,5 +715,8 @@ dominant location, **M3 is done.**
 - **Type consistency:** reuses `listMediaByTrip` (M2), `Media`/`Trip` types,
   `updateTrip` (M1). `centroid`/`toFeatures` shared between map and name
   suggestion. Geocode cache is Dexie v2 (additive, no breakage).
+- **Responsive:** the map is full-bleed and fills the content area beside the desktop
+  sidebar (full width on phones); the photo preview overlay is full-screen on all
+  sizes.
 - **Constraint check:** no API tokens (OSM tiles + Nominatim are free); geocode
   cached in IndexedDB; query-param route under `<Suspense>`. Static-export safe.

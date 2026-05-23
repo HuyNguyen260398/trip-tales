@@ -38,13 +38,13 @@
 - [ ] **Step 1: Install**
 
 ```bash
-npm install exifr heic2any
+pnpm add exifr heic2any
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add package.json package-lock.json
+git add package.json pnpm-lock.yaml
 git commit -m "chore: add exifr + heic2any for media import"
 ```
 
@@ -86,7 +86,7 @@ describe("dayKeyFromEpoch", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/dayKey.test.ts
+pnpm exec vitest run src/lib/dayKey.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -112,7 +112,7 @@ export function dayKeyFromEpoch(ms: number): string {
 
 Run:
 ```bash
-npx vitest run src/lib/dayKey.test.ts
+pnpm exec vitest run src/lib/dayKey.test.ts
 ```
 Expected: PASS (3 tests).
 
@@ -181,7 +181,7 @@ describe("parseExif", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/exif.test.ts
+pnpm exec vitest run src/lib/exif.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -228,7 +228,7 @@ export async function parseExif(file: File): Promise<ParsedExif> {
 
 Run:
 ```bash
-npx vitest run src/lib/exif.test.ts
+pnpm exec vitest run src/lib/exif.test.ts
 ```
 Expected: PASS (3 tests).
 
@@ -294,7 +294,7 @@ export async function objectUrl(path: string): Promise<string> {
 
 Run:
 ```bash
-npm run build
+pnpm build
 ```
 Expected: build succeeds.
 
@@ -369,7 +369,7 @@ export async function makeThumbnail(file: File): Promise<Blob> {
 
 Run:
 ```bash
-npm run build
+pnpm build
 ```
 Expected: build succeeds.
 
@@ -473,7 +473,7 @@ describe("mediaByDay", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/media.test.ts
+pnpm exec vitest run src/lib/media.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -596,7 +596,7 @@ export async function deleteMedia(id: string): Promise<void> {
 
 Run:
 ```bash
-npx vitest run src/lib/media.test.ts
+pnpm exec vitest run src/lib/media.test.ts
 ```
 Expected: PASS (4 tests).
 
@@ -661,7 +661,7 @@ export default function MediaThumb({ media }: { media: Media }) {
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/MediaThumb.tsx
 git commit -m "feat: MediaThumb renders OPFS thumbnail with video/no-GPS badges"
 ```
@@ -719,7 +719,7 @@ export default function MediaImporter({ tripId }: { tripId: string }) {
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/MediaImporter.tsx
 git commit -m "feat: MediaImporter file picker with import progress"
 ```
@@ -757,9 +757,13 @@ export default function MediaEditDialog({
   const [lng, setLng] = useState(media.lng?.toString() ?? "");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/60" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-black/60 lg:items-center lg:justify-center"
+      onClick={onClose}
+    >
+      {/* Bottom sheet on phones; centered modal from lg up. */}
       <div
-        className="w-full rounded-t-2xl bg-neutral-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        className="w-full rounded-t-2xl bg-neutral-900 p-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:max-w-md lg:rounded-2xl lg:pb-6"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="mb-3 text-lg font-medium">Edit metadata</h2>
@@ -805,7 +809,7 @@ export default function MediaEditDialog({
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/MediaEditDialog.tsx
 git commit -m "feat: manual date/location edit dialog for stripped metadata"
 ```
@@ -848,7 +852,7 @@ export default function DayTimeline({ tripId }: { tripId: string }) {
           <h2 className="mb-2 text-sm font-medium text-neutral-400">
             {g.dayKey} · {g.items.length} item{g.items.length > 1 ? "s" : ""}
           </h2>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {g.items.map((m) => (
               <button key={m.id} onClick={() => setEditing(m)} className="text-left">
                 <MediaThumb media={m} />
@@ -885,7 +889,7 @@ comment with:
 
 Run:
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 ```
 Expected: all unit tests pass; static export builds.
 
@@ -904,7 +908,7 @@ git commit -m "feat: day-grouped media timeline wired into trip page"
 > jsdom tests cover logic; only a device proves the import path. **Do this on your
 > iPhone.**
 
-- [ ] **Step 1:** Deploy (or `npm run build && npx serve out`) and open the installed PWA.
+- [ ] **Step 1:** Deploy (or `pnpm build && pnpm dlx serve out`) and open the installed PWA.
 - [ ] **Step 2:** Open a trip → **Add photos & videos** → select a real day's mix of
   HEIC photos + a video from the camera roll.
 - [ ] **Step 3:** Confirm thumbnails render (HEIC included — the heic2any fallback
@@ -930,5 +934,7 @@ where metadata was stripped), **M2 is done.**
   `mediaByDay`, `updateMedia`, `deleteMedia` signatures identical across tests,
   components, and the M3/M4 consumers. `[tripId+dayKey]` index from M1 backs the
   queries.
+- **Responsive:** the day grid scales 3→4→6 columns with the viewport, and the
+  metadata editor is a bottom sheet on phones / a centered modal on desktop (`lg:`).
 - **Constraint check:** no network calls, blobs in OPFS, records in IndexedDB —
   on-device only, static-export safe.

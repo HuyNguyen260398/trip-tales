@@ -37,13 +37,13 @@
 - [ ] **Step 1: Install**
 
 ```bash
-npm install dexie dexie-react-hooks
+pnpm add dexie dexie-react-hooks
 ```
 
 - [ ] **Step 2: Commit**
 
 ```bash
-git add package.json package-lock.json
+git add package.json pnpm-lock.yaml
 git commit -m "chore: add Dexie + dexie-react-hooks"
 ```
 
@@ -264,7 +264,7 @@ describe("trips CRUD", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/trips.test.ts
+pnpm exec vitest run src/lib/trips.test.ts
 ```
 Expected: FAIL — `./trips` module/functions don't exist yet.
 
@@ -317,7 +317,7 @@ export async function deleteTrip(id: string): Promise<void> {
 
 Run:
 ```bash
-npx vitest run src/lib/trips.test.ts
+pnpm exec vitest run src/lib/trips.test.ts
 ```
 Expected: PASS (4 tests).
 
@@ -390,7 +390,7 @@ describe("TripList", () => {
 
 Run:
 ```bash
-npx vitest run src/components/TripList.test.tsx
+pnpm exec vitest run src/components/TripList.test.tsx
 ```
 Expected: FAIL — `TripList` doesn't exist.
 
@@ -414,12 +414,13 @@ export default function TripList() {
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    // Single column on phones; 2–3 columns as the viewport widens (desktop shell).
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {trips.map((t) => (
         <li key={t.id}>
           <Link
             href={`/trip?id=${t.id}`}
-            className="block rounded-xl bg-neutral-900 p-4 active:bg-neutral-800"
+            className="block h-full rounded-xl bg-neutral-900 p-4 hover:bg-neutral-800 active:bg-neutral-800"
           >
             <span className="font-medium">{t.name}</span>
             <span className="block text-sm text-neutral-500">
@@ -437,7 +438,7 @@ export default function TripList() {
 
 Run:
 ```bash
-npx vitest run src/components/TripList.test.tsx
+pnpm exec vitest run src/components/TripList.test.tsx
 ```
 Expected: PASS (2 tests).
 
@@ -531,7 +532,7 @@ export default function TripForm({
 
 Run:
 ```bash
-npm run build
+pnpm build
 ```
 Expected: build succeeds (component compiles; it's wired into pages next).
 
@@ -573,7 +574,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] lg:max-w-4xl">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Triptales</h1>
         <button
@@ -606,7 +607,7 @@ export default function Home() {
 The M0 test renders `<Home />` and asserts the "Triptales" heading. That still
 holds. Run:
 ```bash
-npx vitest run src/app/page.test.tsx
+pnpm exec vitest run src/app/page.test.tsx
 ```
 Expected: PASS. (If `useRouter` throws under jsdom, the test still finds the
 heading because it renders before navigation; if it fails, mock it — see note
@@ -658,7 +659,7 @@ function TripDetail() {
   if (trip === null || !trip) return <p className="text-neutral-500">Trip not found.</p>;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] lg:max-w-4xl">
       <button onClick={() => router.push("/")} className="self-start text-sm text-neutral-400">
         ← All trips
       </button>
@@ -712,7 +713,7 @@ export default function TripPage() {
 
 Run:
 ```bash
-npm run build
+pnpm build
 test -f out/trip/index.html && echo "TRIP ROUTE EXPORTED"
 ```
 Expected: `TRIP ROUTE EXPORTED`.
@@ -721,7 +722,7 @@ Expected: `TRIP ROUTE EXPORTED`.
 
 Run:
 ```bash
-npm test
+pnpm test
 ```
 Expected: all tests pass (trips CRUD + TripList + home smoke).
 
@@ -739,7 +740,7 @@ git commit -m "feat: trip detail page with edit + cascade delete (query-param ro
 > The acceptance check is "close the app, reopen, it's still there." IndexedDB
 > persistence can't be proven by a jsdom test.
 
-- [ ] **Step 1:** `npm run build && npx serve out` (or deploy), open in a browser.
+- [ ] **Step 1:** `pnpm build && pnpm dlx serve out` (or deploy), open in a browser.
 - [ ] **Step 2:** Create a trip "Lisbon" with dates. Confirm it appears in the list.
 - [ ] **Step 3:** Fully close the tab/app, reopen the URL. Expected: "Lisbon" is
   still listed (loaded from IndexedDB).
@@ -758,6 +759,9 @@ If the trip survives a relaunch, **M1 is done.**
   declares all three tables now so M2/M4 add rows without a schema bump. CRUD
   signatures (`createTrip`, `getTrip`, `updateTrip`, `deleteTrip`) are used
   identically in tests and pages.
+- **Responsive:** the trips list is a 1→2→3 column grid and pages use the shared
+  `max-w-2xl lg:max-w-4xl` container, so the list and detail read well both in the
+  desktop App Shell and on phones. pnpm throughout.
 - **Constraint check:** all components are `"use client"`, routing is query-param
   based (no dynamic segments), `useSearchParams` wrapped in `<Suspense>` — static
   export stays valid.

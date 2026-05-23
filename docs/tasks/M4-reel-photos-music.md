@@ -89,7 +89,7 @@ describe("buildStoryboard", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/storyboard.test.ts
+pnpm exec vitest run src/lib/reel/storyboard.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -147,7 +147,7 @@ export function storyboardDuration(segs: Segment[]): number {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/storyboard.test.ts
+pnpm exec vitest run src/lib/reel/storyboard.test.ts
 ```
 Expected: PASS (5 tests).
 
@@ -199,7 +199,7 @@ describe("kenBurnsScale", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/kenburns.test.ts
+pnpm exec vitest run src/lib/reel/kenburns.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -221,7 +221,7 @@ export function kenBurnsScale(zoomIn: boolean, t: number): number {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/kenburns.test.ts
+pnpm exec vitest run src/lib/reel/kenburns.test.ts
 ```
 Expected: PASS (4 tests).
 
@@ -273,7 +273,7 @@ describe("pickRecorderMime", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/codec.test.ts
+pnpm exec vitest run src/lib/reel/codec.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -315,7 +315,7 @@ export function extForMime(mime: string): string {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/codec.test.ts
+pnpm exec vitest run src/lib/reel/codec.test.ts
 ```
 Expected: PASS (3 tests).
 
@@ -432,7 +432,7 @@ export async function createAudioMix(src: string): Promise<AudioMix> {
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/reel/audioMixer.ts
 git commit -m "feat: Web Audio music mixer exposing a MediaStreamTrack"
 ```
@@ -536,7 +536,7 @@ export async function createCanvasRender(segs: Segment[]): Promise<ReelRender> {
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/reel/canvasRenderer.ts
 git commit -m "feat: canvas storyboard renderer with Ken-Burns + crossfade"
 ```
@@ -608,7 +608,7 @@ export async function renderReel(
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/reel/recorder.ts
 git commit -m "feat: reel recorder orchestration (captureStream + audio + MediaRecorder)"
 ```
@@ -665,7 +665,7 @@ describe("saveReel", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/reels.test.ts
+pnpm exec vitest run src/lib/reels.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -740,7 +740,7 @@ export async function deleteReel(id: string): Promise<void> {
 
 Run:
 ```bash
-npx vitest run src/lib/reels.test.ts
+pnpm exec vitest run src/lib/reels.test.ts
 ```
 Expected: PASS (2 tests).
 
@@ -830,26 +830,29 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm text-neutral-400">{photoCount} photo{photoCount !== 1 ? "s" : ""} this day</p>
+    // Controls stack above the preview on phones; sit beside a larger preview on desktop.
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+      <div className="flex flex-col gap-4 lg:w-72 lg:shrink-0">
+        <p className="text-sm text-neutral-400">{photoCount} photo{photoCount !== 1 ? "s" : ""} this day</p>
 
-      <label className="flex flex-col gap-1 text-sm">
-        Music
-        <select value={musicId} onChange={(e) => setMusicId(e.target.value)}
-          className="rounded-lg bg-neutral-900 p-3">
-          {TRACKS.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
-        </select>
-      </label>
+        <label className="flex flex-col gap-1 text-sm">
+          Music
+          <select value={musicId} onChange={(e) => setMusicId(e.target.value)}
+            className="rounded-lg bg-neutral-900 p-3">
+            {TRACKS.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}
+          </select>
+        </label>
 
-      <button onClick={handleRender} disabled={status === "rendering" || photoCount === 0}
-        className="rounded-xl bg-white p-3 font-medium text-neutral-950 disabled:opacity-40">
-        {status === "rendering" ? "Rendering…" : existing ? "Re-render reel" : "Make reel"}
-      </button>
+        <button onClick={handleRender} disabled={status === "rendering" || photoCount === 0}
+          className="rounded-xl bg-white p-3 font-medium text-neutral-950 disabled:opacity-40">
+          {status === "rendering" ? "Rendering…" : existing ? "Re-render reel" : "Make reel"}
+        </button>
 
-      {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <p className="text-sm text-red-400">{error}</p>}
+      </div>
 
       {previewUrl && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-1 flex-col gap-2">
           <video src={previewUrl} controls playsInline className="w-full rounded-xl bg-black" />
           <button onClick={handleShare} className="rounded-xl bg-neutral-800 p-3 text-sm">
             Share / download
@@ -864,7 +867,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/components/ReelBuilder.tsx
 git commit -m "feat: ReelBuilder — render, preview, save, share/download"
 ```
@@ -896,7 +899,7 @@ function ReelView() {
   if (!tripId || !dayKey) return <p className="p-6 text-neutral-500">Missing trip or day.</p>;
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))]">
+    <main className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-4 p-6 pt-[max(1.5rem,env(safe-area-inset-top))] lg:max-w-4xl">
       <button onClick={() => router.push(`/trip?id=${tripId}`)} className="self-start text-sm text-neutral-400">
         ← Trip
       </button>
@@ -932,7 +935,7 @@ each `<section>`'s header area add a link (the timeline already has `tripId` and
 
 Run:
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 test -f out/reel/index.html && echo "REEL ROUTE EXPORTED"
 ```
 Expected: tests pass; `REEL ROUTE EXPORTED`.
@@ -978,6 +981,9 @@ done.**
 - **Type consistency:** `Segment`/`ReelOptions` from storyboard reused by renderer
   and recorder; `Reel` type from `types.ts`; `mediaByDay` (M2) feeds the builder;
   `getReelForDay` uses the `[tripId+dayKey]` index from M1.
+- **Responsive:** the reel builder stacks controls above the preview on phones and
+  sits them beside a larger preview on desktop (`lg:flex-row`); the M5 video options
+  drop into the same controls column.
 - **Constraint check:** rendering and recording are fully client-side; reel blobs
   in OPFS, records in IndexedDB; music is bundled CC0; routes are query-param +
   `<Suspense>`. Static-export safe.

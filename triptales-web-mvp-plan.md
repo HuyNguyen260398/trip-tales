@@ -40,8 +40,13 @@ guarantees. These are the reasons Phase 2 goes native — Phase 1 makes everythi
 - **Framework:** Next.js (App Router, TypeScript), configured for **static export
   (`output: 'export'`)** from day one — this is what makes the later Capacitor wrap
   clean. Keep everything client-side; avoid server actions / route handlers.
-- **UI:** Tailwind CSS + a small headless component lib (Radix / shadcn). Design
-  mobile-first, single-column, large tap targets, safe-area aware.
+- **Package manager:** **pnpm** — `pnpm add [-D] <pkg>`, `pnpm dev/build/test`,
+  `pnpm exec <bin>`; the committed lockfile is `pnpm-lock.yaml`.
+- **UI:** Tailwind CSS + a small headless component lib (Radix / shadcn). A web app
+  for **desktop browsers and phones**: design mobile-first with large tap targets and
+  safe-area awareness, then layer up to a desktop **adaptive shell** (sidebar +
+  multi-column) via Tailwind breakpoints — one component tree, no separate
+  desktop/mobile renders.
 - **EXIF:** `exifr` (reads date + GPS from JPEG/HEIC, fast, tree-shakeable).
 - **HEIC display:** `heic2any` fallback for thumbnails (iOS Safari renders HEIC
   natively, but other browsers don't — handle both).
@@ -170,7 +175,8 @@ Offline shell, day-timeline UX, multi-track music picker, trip export (zip of re
 - **Amplify Hosting** serves the static export; connect your Git repo for
   push-to-deploy. (As a DevOps/AWS person you can wire this with the Amplify CLI or
   a minimal CDK/Terraform stack — Amplify Hosting is the only AWS resource Phase 1
-  needs.)
+  needs.) The build enables Corepack and runs `pnpm install --frozen-lockfile`, then
+  `pnpm build`.
 - Add the **PWA manifest** + icons so "Add to Home Screen" gives a full-screen,
   installable app. On iOS 26, home-screen sites default to web-app mode, which helps.
 - No secrets, no backend — so no IAM/data-handling surface to worry about in Phase 1.

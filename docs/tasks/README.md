@@ -27,6 +27,15 @@ shippable.
 
 These decisions are made once here so the per-milestone plans stay consistent.
 
+### Package manager (pnpm)
+
+This project uses **pnpm**. Scaffold with `pnpm create next-app … --use-pnpm`, add
+deps with `pnpm add [-D] <pkg>`, run scripts with `pnpm <script>` (`pnpm dev`,
+`pnpm build`, `pnpm test`), and run a one-off binary with `pnpm exec <bin>` (e.g.
+`pnpm exec vitest run <file>` for a single test file). The committed lockfile is
+`pnpm-lock.yaml` (never `package-lock.json`). CI/hosting installs with
+`pnpm install --frozen-lockfile` after enabling Corepack (`corepack enable`).
+
 ### Architectural guardrails (from CLAUDE.md — do not break)
 
 - **Static export only:** `next.config.ts` sets `output: 'export'`. No server
@@ -48,17 +57,45 @@ IDs live only in client IndexedDB. **Use query-param routing instead**, read wit
 Any client component using `useSearchParams()` must be wrapped in `<Suspense>` to
 satisfy the static export build.
 
+### Responsive layout (adaptive shell)
+
+Triptales is a **web app for both desktop browsers and phones**, built mobile-first
+and layered up with Tailwind breakpoints — **one component tree**, no separate
+desktop/mobile renders (this keeps the Phase-2 Capacitor wrap a no-rewrite).
+
+- **App shell (`AppShell`, M0):** the root layout wraps every page in a responsive
+  frame. On desktop (`lg:`) a persistent **left sidebar** holds the brand + primary
+  nav; on mobile a fixed, safe-area-aware **bottom nav** is shown instead
+  (`lg:hidden`, sidebar is `hidden lg:flex`). Content lives in a `flex-1` region;
+  pages keep their own `<main>`.
+- **Primary nav grows with routes:** M0 ships **Trips** (home); M6 adds **Settings**.
+  Map and Reel are trip-/day-scoped, linked from the trip screen — not global nav.
+- **Content width:** pages do **not** hard-cap at `max-w-md`. Reading/form screens
+  use the shared container `mx-auto w-full max-w-2xl lg:max-w-4xl`; the map is
+  full-bleed (fills the content region beside the sidebar).
+- **Grids scale with breakpoints:** trip cards `grid-cols-1 sm:grid-cols-2
+  lg:grid-cols-3`; media thumbnails `grid-cols-3 sm:grid-cols-4 lg:grid-cols-6`.
+- **Use the extra desktop width:** the reel builder lays controls beside a larger
+  preview (`lg:flex-row`); modal dialogs center on desktop (`lg:items-center`)
+  rather than sitting as mobile bottom sheets.
+- **Safe areas still matter** on mobile (and under Capacitor): keep
+  `env(safe-area-inset-*)` padding on the bottom nav and page tops.
+
 ### Folder structure (built up across milestones)
 
 ```
 src/
   app/
-    layout.tsx              # root layout, safe-area, PWA meta
+    layout.tsx              # root layout, safe-area, PWA meta, AppShell
     page.tsx                # trips list           (M1)
     trip/page.tsx           # trip detail/timeline (M1, M2)
     map/page.tsx            # photo map            (M3)
     reel/page.tsx           # reel builder         (M4, M5)
   components/
+    AppShell.tsx            # responsive frame: sidebar + bottom nav   (M0)
+    Sidebar.tsx             # desktop left nav (lg:)                    (M0)
+    BottomNav.tsx           # mobile bottom nav (lg:hidden)            (M0)
+    nav.ts                  # primary nav items (Trips; +Settings M6)   (M0)
     ui/                     # headless primitives (shadcn-style)
   lib/
     db.ts                   # Dexie instance + tables       (M1)

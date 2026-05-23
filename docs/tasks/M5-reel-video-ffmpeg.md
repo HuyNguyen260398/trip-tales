@@ -56,7 +56,7 @@ single-thread, so the app degrades instead of breaking.
 - [ ] **Step 1: Install ffmpeg.wasm**
 
 ```bash
-npm install @ffmpeg/ffmpeg @ffmpeg/util
+pnpm add @ffmpeg/ffmpeg @ffmpeg/util
 ```
 
 - [ ] **Step 2: Add COOP/COEP headers for local dev**
@@ -99,7 +99,7 @@ customHeaders:
 
 Run:
 ```bash
-npm run dev
+pnpm dev
 ```
 In the browser console at `http://localhost:3000`, run `crossOriginIsolated`.
 Expected: `true`.
@@ -107,7 +107,7 @@ Expected: `true`.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add package.json package-lock.json next.config.ts customHttp.yml
+git add package.json pnpm-lock.yaml next.config.ts customHttp.yml
 git commit -m "chore: add ffmpeg.wasm + COOP/COEP cross-origin isolation"
 ```
 
@@ -161,7 +161,7 @@ describe("buildConcatPlan", () => {
 
 Run:
 ```bash
-npx vitest run src/lib/reel/concatPlan.test.ts
+pnpm exec vitest run src/lib/reel/concatPlan.test.ts
 ```
 Expected: FAIL — module not found.
 
@@ -214,7 +214,7 @@ export function buildConcatPlan(media: Media[], opts: VideoReelOptions): ConcatP
 
 Run:
 ```bash
-npx vitest run src/lib/reel/concatPlan.test.ts
+pnpm exec vitest run src/lib/reel/concatPlan.test.ts
 ```
 Expected: PASS (4 tests).
 
@@ -311,7 +311,7 @@ export async function muxAudio(ff: FFmpeg, video: string, music: Blob, out: stri
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/reel/ffmpeg.ts
 git commit -m "feat: ffmpeg.wasm wrapper (lazy load, trim, concat, mux)"
 ```
@@ -413,7 +413,7 @@ export async function renderVideoReel(
 - [ ] **Step 2: Verify build; commit**
 
 ```bash
-npm run build
+pnpm build
 git add src/lib/reel/videoReel.ts
 git commit -m "feat: video reel orchestration (photos + ffmpeg-stitched clips)"
 ```
@@ -442,7 +442,8 @@ const [maxHeight, setMaxHeight] = useState(DEFAULT_VIDEO_OPTS.maxHeight);
 const videoCount = day?.items.filter((m) => m.type === "video").length ?? 0;
 ```
 
-Add controls above the render button:
+Add controls above the render button (they belong in the M4 controls column, so on
+desktop they sit beside the larger preview):
 
 ```tsx
 {videoCount > 0 && (
@@ -499,7 +500,7 @@ try {
 
 Run:
 ```bash
-npm test && npm run build
+pnpm test && pnpm build
 ```
 Expected: tests pass; export builds.
 

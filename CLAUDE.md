@@ -36,7 +36,11 @@ These are easy to violate and exist to protect the Phase 2 native bridge and the
 ## Intended tech stack (per the plan)
 
 - Next.js (App Router, TypeScript), Tailwind CSS, Radix/shadcn for headless UI.
-  Mobile-first, single-column, safe-area aware.
+  **pnpm** is the package manager. This is a web app for **desktop browsers and
+  phones**: a responsive **adaptive shell** built from one component tree —
+  mobile-first single-column with a bottom nav, scaling up to a desktop sidebar +
+  multi-column layouts via Tailwind breakpoints; safe-area aware. One component tree
+  (no separate desktop/mobile renders) keeps the Phase-2 Capacitor wrap clean.
 - `exifr` for EXIF date + GPS; `heic2any` as a HEIC display fallback (iOS Safari
   renders HEIC natively, other browsers don't).
 - Reel render: Phase A = Canvas + `canvas.captureStream()` + `MediaRecorder` + Web
@@ -68,5 +72,8 @@ work (in-browser video, storage eviction, HEIC/metadata) is called out in the pl
 
 ## Commands
 
-None established yet (no `package.json`). Once the Next.js app is scaffolded, update
-this section with the dev/build/lint/test commands the project actually adopts.
+The package manager is **pnpm**. App scripts aren't established yet (no
+`package.json`). Once the Next.js app is scaffolded, update this section with the
+real commands — expect `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm exec vitest run
+<file>`, and `pnpm add [-D] <pkg>` for deps. The committed lockfile is
+`pnpm-lock.yaml` (never `package-lock.json`).
