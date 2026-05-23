@@ -35,6 +35,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      return fetch(request).then((res) => {
+        if (
+          res.ok &&
+          res.type === "basic" &&
+          new URL(request.url).origin === self.location.origin
+        ) {
+          event.waitUntil(caches.open(CACHE).then((c) => c.put(request, res.clone())));
+        }
+        return res;
+      });
+    })
   );
 });
