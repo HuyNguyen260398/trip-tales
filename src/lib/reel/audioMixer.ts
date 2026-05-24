@@ -1,6 +1,6 @@
 export interface AudioMix {
   audioTrack: MediaStreamTrack;
-  start: () => Promise<void>;
+  start: () => void;
   stop: () => void;
 }
 
@@ -8,9 +8,11 @@ export interface AudioMix {
  * Decode a music file and expose it as a MediaStreamTrack to feed into the
  * recorder, plus start/stop controls. The track loops so short songs cover the
  * whole reel.
+ *
+ * Pass an already-resumed AudioContext so the caller can capture the user-gesture
+ * window before any slow async work (OPFS reads, HEIC conversion) expires it.
  */
-export async function createAudioMix(src: string): Promise<AudioMix> {
-  const ctx = new AudioContext();
+export async function createAudioMix(src: string, ctx: AudioContext): Promise<AudioMix> {
   const dest = ctx.createMediaStreamDestination();
 
   let source: AudioBufferSourceNode | null = null;
@@ -28,10 +30,7 @@ export async function createAudioMix(src: string): Promise<AudioMix> {
 
   return {
     audioTrack: dest.stream.getAudioTracks()[0],
-    start: async () => {
-      await ctx.resume();
-      source?.start();
-    },
+    start: () => { source?.start(); },
     stop: () => {
       try { source?.stop(); } catch { /* already stopped */ }
       ctx.close();

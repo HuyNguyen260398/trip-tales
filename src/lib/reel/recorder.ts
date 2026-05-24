@@ -27,9 +27,18 @@ export async function renderReel(
   const mime = pickRecorderMime();
   if (!mime) throw new CodecUnsupportedError();
 
-  const render = await createCanvasRender(segs);
+  // Resume AudioContext NOW — before any slow async work — so the user-gesture
+  // window (≈1 s on iOS Safari) hasn't expired when audio playback starts.
+  const audioCtx = new AudioContext();
+  await audioCtx.resume();
+
+  // Load bitmaps and decode audio in parallel — independent I/O, no reason to serial.
+  const [render, audio] = await Promise.all([
+    createCanvasRender(segs),
+    createAudioMix(musicSrc, audioCtx),
+  ]);
+
   const stream = render.canvas.captureStream(30);
-  const audio = await createAudioMix(musicSrc);
   stream.addTrack(audio.audioTrack);
 
   const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4_000_000 });
@@ -41,7 +50,7 @@ export async function renderReel(
   });
 
   recorder.start();
-  await audio.start();
+  audio.start();
   await render.play();
   audio.stop();
   recorder.stop();
