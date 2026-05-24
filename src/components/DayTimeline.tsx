@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useLiveQuery } from "@/hooks/useLiveQuery";
 import { mediaByDay } from "@/lib/media";
 import MediaThumb from "./MediaThumb";
@@ -20,9 +21,13 @@ export default function DayTimeline({ tripId }: { tripId: string }) {
     <div className="flex flex-col gap-6">
       {groups.map((g) => (
         <section key={g.dayKey}>
-          <h2 className="mb-2 text-sm font-medium text-neutral-400">
-            {g.dayKey} · {g.items.length} item{g.items.length > 1 ? "s" : ""}
-          </h2>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-medium text-neutral-400">
+              {g.dayKey} · {g.items.length} item{g.items.length > 1 ? "s" : ""}
+            </h2>
+            <Link href={`/reel?trip=${tripId}&day=${g.dayKey}`}
+              className="text-xs text-blue-400">Make reel →</Link>
+          </div>
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
             {g.items.map((m) => (
               <button key={m.id} onClick={() => setEditing(m)} className="text-left" aria-label={`Edit ${m.type} from ${m.dayKey}`}>
