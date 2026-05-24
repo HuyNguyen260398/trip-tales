@@ -21,7 +21,7 @@ export function buildStoryboard(media: Media[], opts: ReelOptions): Segment[] {
   const { perPhotoSec, crossfadeSec } = opts;
   const step = perPhotoSec - crossfadeSec;
   return photos.map((m, i) => {
-    const startSec = i === 0 ? 0 : i * step;
+    const startSec = i * step;
     return {
       mediaId: m.id,
       opfsPath: m.opfsPath,
