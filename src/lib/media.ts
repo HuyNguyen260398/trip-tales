@@ -34,9 +34,22 @@ export async function importFile(
 
   const opfsPath = await deps.writeBlob(`${id}.${ext}`, file);
   const isVideo = file.type.startsWith("video/");
-  const thumbPath = isVideo
-    ? opfsPath
-    : await deps.writeBlob(`${id}.thumb.jpg`, await deps.makeThumbnail(file));
+  let thumbPath: string;
+  if (isVideo) {
+    thumbPath = opfsPath;
+  } else {
+    const thumbBlob = await deps.makeThumbnail(file);
+    const t = thumbBlob.type.toLowerCase();
+    // Use the actual MIME type to pick the extension; OPFS derives the File.type
+    // from the file name, so a wrong extension causes the browser to mis-decode.
+    const thumbExt =
+      t.includes("heic") || t.includes("heif") ? "heic"
+      : t.includes("png") ? "png"
+      : t.includes("webp") ? "webp"
+      : t.includes("jpeg") || t.includes("jpg") ? "jpg"
+      : (file.name.split(".").pop()?.toLowerCase() ?? "jpg");
+    thumbPath = await deps.writeBlob(`${id}.thumb.${thumbExt}`, thumbBlob);
+  }
 
   const record: Media = {
     id,
