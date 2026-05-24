@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import AppShell from "@/components/AppShell";
 import RegisterSW from "@/components/RegisterSW";
+import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
