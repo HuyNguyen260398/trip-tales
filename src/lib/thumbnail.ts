@@ -5,6 +5,10 @@ function isHeic(file: File): boolean {
   return /heic|heif/i.test(file.type) || /\.hei[cf]$/i.test(file.name);
 }
 
+function looksHeic(blob: Blob, pathHint: string): boolean {
+  return /heic|heif/i.test(blob.type) || /\.hei[cf]$/i.test(pathHint);
+}
+
 /** Attempt to decode a blob to ImageBitmap; returns null instead of throwing. */
 async function tryDecode(blob: Blob): Promise<ImageBitmap | null> {
   try {
@@ -16,9 +20,8 @@ async function tryDecode(blob: Blob): Promise<ImageBitmap | null> {
 
 /**
  * Decode blob via an HTMLImageElement and draw it to a scaled JPEG canvas.
- * Chrome 105+ on macOS supports HEIC in <img> even though createImageBitmap
- * blocks it — the two paths use different codec stacks. Returns null if the
- * browser cannot load the image or the canvas produces no blob.
+ * Only works in browsers with native HEIC support (Safari/iOS).
+ * Returns null if the browser cannot load the image or the canvas produces no blob.
  */
 function tryDecodeViaImg(blob: Blob): Promise<Blob | null> {
   return new Promise((resolve) => {
@@ -64,17 +67,15 @@ export async function makeThumbnail(file: File): Promise<Blob> {
   // and HEIC in Safari/iOS where it is natively supported.
   let bitmap = await tryDecode(file);
 
-  // Attempt 2: heic2any for HEIC when the browser cannot decode natively
-  // (Chrome/Firefox). heic2any is best-effort — it uses an older libheif
-  // that may not support all HEIC profiles, so we fall through on failure.
+  // Attempt 2: heic-to for HEIC when the browser cannot decode natively
+  // (Chrome/Firefox/Edge). Uses libheif 1.21+ which supports modern iPhone HEIC.
   if (!bitmap && isHeic(file)) {
     try {
-      const heic2any = (await import("heic2any")).default;
-      const converted = await heic2any({ blob: file, toType: "image/jpeg", quality: QUALITY });
-      const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+      const { heicTo } = await import("heic-to");
+      const jpegBlob = await heicTo({ blob: file, type: "image/jpeg", quality: QUALITY });
       bitmap = await tryDecode(jpegBlob);
     } catch {
-      // heic2any failed; fall through
+      // heic-to failed; fall through
     }
   }
 
@@ -97,18 +98,40 @@ export async function makeThumbnail(file: File): Promise<Blob> {
     );
   }
 
-  // Attempt 3: <img>-element decode for HEIC.
-  // Chrome 105+ macOS supports HEIC natively in <img> but not in
-  // createImageBitmap. Loading via HTMLImageElement then drawing to canvas
-  // gives us a proper JPEG thumbnail without needing heic2any.
+  // Attempt 3: <img>-element decode — last resort for Safari where
+  // createImageBitmap may block HEIC but <img> renders it natively.
   if (isHeic(file)) {
     const imgBlob = await tryDecodeViaImg(file);
     if (imgBlob) return imgBlob;
   }
 
   // Attempt 4: all decode paths failed.
-  // Return the original file for HEIC so the <img> element in the UI can
-  // still try the browser's native codec as a last resort.
-  // For any other format: neutral placeholder.
+  // Return the original file for HEIC so Safari's <img> can still try it.
   return isHeic(file) ? file : placeholderBlob();
+}
+
+/**
+ * Convert a blob to a browser-displayable form for the full-size preview.
+ * HEIC blobs are converted to JPEG via heic-to (libheif 1.21+).
+ * Non-HEIC blobs are returned as-is.
+ *
+ * Chrome/Edge do not support HEIC in <img> elements — heic-to is the only
+ * reliable decode path on those browsers. Safari renders HEIC natively so
+ * the typed raw-blob fallback covers it.
+ *
+ * Chromium's OPFS getFile() returns blobs with type="" regardless of extension,
+ * so we re-wrap with image/heic before processing.
+ */
+export async function toDisplayBlob(blob: Blob, pathHint = ""): Promise<Blob> {
+  if (!looksHeic(blob, pathHint)) return blob;
+  // OPFS blobs have type="" in Chromium — supply the MIME type so Object URLs
+  // route to the correct codec and heic-to can detect the format.
+  const heicBlob = blob.type ? blob : new Blob([blob], { type: "image/heic" });
+  try {
+    const { heicTo } = await import("heic-to");
+    return await heicTo({ blob: heicBlob, type: "image/jpeg", quality: 0.92 });
+  } catch {
+    // heic-to failed; return typed blob for Safari's native HEIC rendering
+    return heicBlob;
+  }
 }

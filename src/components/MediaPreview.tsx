@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { objectUrl } from "@/lib/opfs";
+import { readBlob } from "@/lib/opfs";
+import { toDisplayBlob } from "@/lib/thumbnail";
 
 export default function MediaPreview({
   thumbOrPath,
@@ -14,11 +15,17 @@ export default function MediaPreview({
 
   useEffect(() => {
     let u: string | null = null;
-    objectUrl(thumbOrPath).then((x) => {
-      u = x;
-      setUrl(x);
-    });
+    let cancelled = false;
+    readBlob(thumbOrPath)
+      .then((blob) => toDisplayBlob(blob, thumbOrPath))
+      .then((displayable) => {
+        if (cancelled) return;
+        u = URL.createObjectURL(displayable);
+        setUrl(u);
+      })
+      .catch(() => {});
     return () => {
+      cancelled = true;
       if (u) URL.revokeObjectURL(u);
     };
   }, [thumbOrPath]);
