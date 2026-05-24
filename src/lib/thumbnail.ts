@@ -14,6 +14,34 @@ async function tryDecode(blob: Blob): Promise<ImageBitmap | null> {
   }
 }
 
+/**
+ * Decode blob via an HTMLImageElement and draw it to a scaled JPEG canvas.
+ * Chrome 105+ on macOS supports HEIC in <img> even though createImageBitmap
+ * blocks it — the two paths use different codec stacks. Returns null if the
+ * browser cannot load the image or the canvas produces no blob.
+ */
+function tryDecodeViaImg(blob: Blob): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w0, naturalHeight: h0 } = img;
+      if (!w0 || !h0) { resolve(null); return; }
+      const scale = Math.min(1, MAX_EDGE / Math.max(w0, h0));
+      const w = Math.round(w0 * scale);
+      const h = Math.round(h0 * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      canvas.toBlob((b) => resolve(b), "image/jpeg", QUALITY);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+    img.src = url;
+  });
+}
+
 /** 1×1 neutral-gray JPEG — always a valid displayable blob. */
 function placeholderBlob(): Promise<Blob> {
   const canvas = document.createElement("canvas");
@@ -46,30 +74,41 @@ export async function makeThumbnail(file: File): Promise<Blob> {
       const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
       bitmap = await tryDecode(jpegBlob);
     } catch {
-      // heic2any failed; fall through to placeholder
+      // heic2any failed; fall through
     }
   }
 
-  // Attempt 3: both canvas-decode paths failed.
-  // For HEIC: return the original file so the <img> element can try the
-  // browser's native codec (Chrome 105+ on macOS, Safari/iOS natively).
-  // For any other format that somehow fails: fall back to a placeholder.
-  if (!bitmap) return isHeic(file) ? file : placeholderBlob();
+  // Got a decoded bitmap — scale to JPEG.
+  if (bitmap) {
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close();
+    return new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob(
+        (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
+        "image/jpeg",
+        QUALITY
+      )
+    );
+  }
 
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-  bitmap.close();
+  // Attempt 3: <img>-element decode for HEIC.
+  // Chrome 105+ macOS supports HEIC natively in <img> but not in
+  // createImageBitmap. Loading via HTMLImageElement then drawing to canvas
+  // gives us a proper JPEG thumbnail without needing heic2any.
+  if (isHeic(file)) {
+    const imgBlob = await tryDecodeViaImg(file);
+    if (imgBlob) return imgBlob;
+  }
 
-  return new Promise<Blob>((resolve, reject) =>
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("toBlob failed"))),
-      "image/jpeg",
-      QUALITY
-    )
-  );
+  // Attempt 4: all decode paths failed.
+  // Return the original file for HEIC so the <img> element in the UI can
+  // still try the browser's native codec as a last resort.
+  // For any other format: neutral placeholder.
+  return isHeic(file) ? file : placeholderBlob();
 }
