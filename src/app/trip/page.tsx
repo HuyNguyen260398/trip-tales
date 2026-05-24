@@ -1,12 +1,14 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useLiveQuery } from "@/hooks/useLiveQuery";
 import { getTrip, updateTrip, deleteTrip } from "@/lib/trips";
 import TripForm from "@/components/TripForm";
 import MediaImporter from "@/components/MediaImporter";
 import DayTimeline from "@/components/DayTimeline";
+import TripNameSuggest from "@/components/TripNameSuggest";
 
 function TripDetail() {
   const router = useRouter();
@@ -37,6 +39,10 @@ function TripDetail() {
         <>
           <h1 className="text-2xl font-semibold">{trip.name}</h1>
           <p className="text-neutral-500">{trip.startDate} → {trip.endDate}</p>
+          <TripNameSuggest tripId={trip.id} />
+          <Link href={`/map?trip=${trip.id}`} className="rounded-xl bg-neutral-800 px-4 py-2 text-center text-sm">
+            View map
+          </Link>
           <MediaImporter tripId={trip.id} />
           <DayTimeline tripId={trip.id} />
           <div className="mt-2 flex gap-2">

@@ -24,9 +24,8 @@ self.addEventListener("fetch", (event) => {
       fetch(request)
         .then((res) => {
           if (res.ok && res.type === "basic") {
-            event.waitUntil(
-              caches.open(CACHE).then((c) => c.put(request, res.clone()))
-            );
+            const clone = res.clone();
+            event.waitUntil(caches.open(CACHE).then((c) => c.put(request, clone)));
           }
           return res;
         })
@@ -43,7 +42,8 @@ self.addEventListener("fetch", (event) => {
           res.type === "basic" &&
           new URL(request.url).origin === self.location.origin
         ) {
-          event.waitUntil(caches.open(CACHE).then((c) => c.put(request, res.clone())));
+          const clone = res.clone();
+          event.waitUntil(caches.open(CACHE).then((c) => c.put(request, clone)));
         }
         return res;
       });
