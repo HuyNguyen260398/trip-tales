@@ -42,6 +42,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
       await saveReel({ tripId, dayKey, musicId, durationSec, blob, ext: extForMime(mime) });
       setStatus("idle");
     } catch (e) {
+      console.error("Reel render error:", e);
       setStatus("error");
       setError(e instanceof CodecUnsupportedError
         ? "Your browser can't record video. Try Safari or Chrome."

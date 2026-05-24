@@ -1,6 +1,6 @@
 export interface AudioMix {
   audioTrack: MediaStreamTrack;
-  start: () => void;
+  start: () => Promise<void>;
   stop: () => void;
 }
 
@@ -11,23 +11,29 @@ export interface AudioMix {
  */
 export async function createAudioMix(src: string): Promise<AudioMix> {
   const ctx = new AudioContext();
-  const buf = await fetch(src).then((r) => r.arrayBuffer());
-  const audioBuffer = await ctx.decodeAudioData(buf);
-
   const dest = ctx.createMediaStreamDestination();
-  const source = ctx.createBufferSource();
-  source.buffer = audioBuffer;
-  source.loop = true;
-  source.connect(dest);
+
+  let source: AudioBufferSourceNode | null = null;
+  try {
+    const buf = await fetch(src).then((r) => r.arrayBuffer());
+    const audioBuffer = await ctx.decodeAudioData(buf);
+    source = ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.loop = true;
+    source.connect(dest);
+  } catch (e) {
+    // Corrupted or missing audio file — reel renders silently rather than failing.
+    console.warn("Audio decode failed, reel will have no music:", e);
+  }
 
   return {
     audioTrack: dest.stream.getAudioTracks()[0],
-    start: () => {
-      ctx.resume();
-      source.start();
+    start: async () => {
+      await ctx.resume();
+      source?.start();
     },
     stop: () => {
-      try { source.stop(); } catch { /* already stopped */ }
+      try { source?.stop(); } catch { /* already stopped */ }
       ctx.close();
     },
   };

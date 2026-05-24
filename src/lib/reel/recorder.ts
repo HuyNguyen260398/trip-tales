@@ -41,7 +41,7 @@ export async function renderReel(
   });
 
   recorder.start();
-  audio.start();
+  await audio.start();
   await render.play();
   audio.stop();
   recorder.stop();
