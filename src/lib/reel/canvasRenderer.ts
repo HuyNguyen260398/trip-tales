@@ -1,6 +1,7 @@
 import type { Segment } from "./storyboard";
 import { kenBurnsScale } from "./kenburns";
 import { readBlob } from "../opfs";
+import { toDisplayBlob } from "../thumbnail";
 
 const WIDTH = 720;
 const HEIGHT = 1280; // portrait reel, 720p cap
@@ -8,7 +9,8 @@ const HEIGHT = 1280; // portrait reel, 720p cap
 async function loadBitmaps(segs: Segment[]): Promise<Map<string, ImageBitmap>> {
   const map = new Map<string, ImageBitmap>();
   for (const s of segs) {
-    const blob = await readBlob(s.opfsPath);
+    const raw = await readBlob(s.opfsPath);
+    const blob = await toDisplayBlob(raw, s.opfsPath);
     map.set(s.mediaId, await createImageBitmap(blob));
   }
   return map;
