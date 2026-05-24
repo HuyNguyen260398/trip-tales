@@ -30,7 +30,7 @@ export default function MediaThumb({ media }: { media: Media }) {
     <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-800">
       {url && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" />
+        <img src={url} alt="" className="h-full w-full object-cover" />
       )}
       {media.type === "video" && (
         <span className="absolute bottom-1 right-1 rounded bg-black/60 px-1 text-xs">▶</span>
