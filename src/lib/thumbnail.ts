@@ -50,9 +50,11 @@ export async function makeThumbnail(file: File): Promise<Blob> {
     }
   }
 
-  // Attempt 3: both paths failed — return a neutral placeholder JPEG so
-  // OPFS always holds a valid, renderable blob (never the raw HEIC bytes).
-  if (!bitmap) return placeholderBlob();
+  // Attempt 3: both canvas-decode paths failed.
+  // For HEIC: return the original file so the <img> element can try the
+  // browser's native codec (Chrome 105+ on macOS, Safari/iOS natively).
+  // For any other format that somehow fails: fall back to a placeholder.
+  if (!bitmap) return isHeic(file) ? file : placeholderBlob();
 
   const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
