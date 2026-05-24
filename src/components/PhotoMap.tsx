@@ -75,7 +75,7 @@ export default function PhotoMap({ tripId }: { tripId: string }) {
       // Tap a pin → preview.
       map.on("click", "points", (e) => {
         const f = e.features?.[0];
-        if (f?.properties?.thumbPath) setPreviewPath(f.properties.thumbPath as string);
+        if (f?.properties?.opfsPath) setPreviewPath(f.properties.opfsPath as string);
       });
     };
 

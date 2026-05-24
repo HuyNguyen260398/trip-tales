@@ -3,6 +3,7 @@ import type { Media } from "./types";
 
 export interface MediaPointProps {
   mediaId: string;
+  opfsPath: string;
   thumbPath: string;
   dayKey: string;
 }
@@ -17,7 +18,7 @@ export function toFeatures(media: Media[]): MediaFeature[] {
     )
     .map((m) => ({
       type: "Feature",
-      properties: { mediaId: m.id, thumbPath: m.thumbPath, dayKey: m.dayKey },
+      properties: { mediaId: m.id, opfsPath: m.opfsPath, thumbPath: m.thumbPath, dayKey: m.dayKey },
       geometry: { type: "Point", coordinates: [m.lng, m.lat] },
     }));
 }
