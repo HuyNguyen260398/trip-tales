@@ -5,6 +5,7 @@ import { reverseGeocodeCached, geoKey } from "./geocache";
 beforeEach(async () => {
   await db.geocache.clear();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("geoKey", () => {

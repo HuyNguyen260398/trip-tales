@@ -14,8 +14,15 @@ export default function TripNameSuggest({ tripId }: { tripId: string }) {
   useEffect(() => {
     if (!media) return;
     const c = centroid(media);
-    if (!c) return;
-    reverseGeocodeCached(c.lat, c.lng).then(setSuggestion);
+    if (!c) {
+      setSuggestion(null);
+      return;
+    }
+    let cancelled = false;
+    reverseGeocodeCached(c.lat, c.lng).then((label) => {
+      if (!cancelled) setSuggestion(label);
+    });
+    return () => { cancelled = true; };
   }, [media]);
 
   if (!suggestion) return null;
