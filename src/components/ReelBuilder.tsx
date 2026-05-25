@@ -25,6 +25,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
 
   useEffect(() => {
     if (!existing) return;
+    console.log("[ReelBuilder] existing reel updated — musicId:", existing.musicId, "opfsPath:", existing.opfsPath);
     let u: string | null = null;
     objectUrl(existing.opfsPath).then((x) => { u = x; setPreviewUrl(x); });
     return () => { if (u) URL.revokeObjectURL(u); };
@@ -34,6 +35,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
     if (!day) return;
     const track = TRACKS.find((t) => t.id === musicId);
     if (!track) return;
+    console.log("[ReelBuilder] handleRender — musicId:", musicId, "track.src:", track.src);
     setStatus("rendering");
     setError(null);
     try {
