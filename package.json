@@ -11,6 +11,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "dexie": "^4.4.2",
     "dexie-react-hooks": "^4.4.0",
     "exifr": "^7.1.3",
