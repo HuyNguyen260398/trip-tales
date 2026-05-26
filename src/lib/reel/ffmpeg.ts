@@ -28,26 +28,30 @@ export async function getFFmpeg(): Promise<FFmpeg> {
   return loadingPromise;
 }
 
-/** Trim a clip to `trimSec`, normalize to `height` and a common codec. */
+/** Trim a clip to `trimSec`, normalize to `width×height` portrait canvas and a common codec. */
 export async function trimAndNormalize(
   ff: FFmpeg,
   input: Blob,
   outName: string,
   trimSec: number,
-  height: number
+  height: number,
+  width: number
 ): Promise<string> {
   const inName = `in_${outName}`;
   await ff.writeFile(inName, await fetchFile(input));
-  const code = await ff.exec([
-    "-i", inName,
-    "-t", String(trimSec),
-    "-vf", `scale=-2:${height},fps=30,setsar=1`,
-    "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
-    "-an", // strip clip audio; music is added at the end
-    outName,
-  ]);
-  if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
-  await ff.deleteFile(inName);
+  try {
+    const code = await ff.exec([
+      "-i", inName,
+      "-t", String(trimSec),
+      "-vf", `scale=${width}:${height}:force_original_aspect_ratio=decrease,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:black,fps=30,setsar=1`,
+      "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
+      "-an", // strip clip audio; music is added at the end
+      outName,
+    ]);
+    if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
+  } finally {
+    try { await ff.deleteFile(inName); } catch { /* best-effort */ }
+  }
   return outName;
 }
 
@@ -66,11 +70,11 @@ export async function concatParts(ff: FFmpeg, parts: string[], out: string): Pro
 
 /** Mux a music track over the (silent) concatenated video, ending at video length. */
 export async function muxAudio(ff: FFmpeg, video: string, music: Blob, out: string): Promise<Blob> {
-  await ff.writeFile("music.mp3", await fetchFile(music));
+  await ff.writeFile("music.bin", await fetchFile(music));
   let blob: Blob;
   try {
     const code = await ff.exec([
-      "-i", video, "-i", "music.mp3",
+      "-i", video, "-i", "music.bin",
       "-c:v", "copy", "-c:a", "aac", "-shortest",
       "-map", "0:v:0", "-map", "1:a:0",
       out,
@@ -80,7 +84,7 @@ export async function muxAudio(ff: FFmpeg, video: string, music: Blob, out: stri
     if (typeof data === "string") throw new Error("ffmpeg readFile returned string for binary output");
     blob = new Blob([(data.buffer as ArrayBuffer).slice(0)], { type: "video/mp4" });
   } finally {
-    try { await ff.deleteFile("music.mp3"); } catch { /* best-effort */ }
+    try { await ff.deleteFile("music.bin"); } catch { /* best-effort */ }
     try { await ff.deleteFile(out); } catch { /* best-effort */ }
   }
   return blob;

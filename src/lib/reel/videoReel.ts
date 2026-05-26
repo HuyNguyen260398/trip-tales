@@ -43,6 +43,13 @@ export async function renderVideoReel(
   const plan = buildConcatPlan(media, opts);
   const ff = await getFFmpeg();
 
+  // Canvas is 720×1280 (9:16 portrait). Compute the matching portrait width for
+  // plan.maxHeight so that every trimAndNormalize call produces identical dimensions.
+  // Formula: floor(maxHeight * (canvasWidth / canvasHeight) / 2) * 2  (keeps even pixels)
+  const CANVAS_WIDTH = 720;
+  const CANVAS_HEIGHT = 1280;
+  const portraitWidth = Math.floor(plan.maxHeight * (CANVAS_WIDTH / CANVAS_HEIGHT) / 2) * 2;
+
   // Fix 3: hoist storyboard computation once to avoid duplicate work.
   const storyboard = buildStoryboard(media, DEFAULT_REEL_OPTS);
   const photoDurationSec = storyboardDuration(storyboard);
@@ -55,7 +62,7 @@ export async function renderVideoReel(
         // Fix 2: pass "photos.mp4" as outName; ffmpeg detects the actual container
         // format from content headers rather than the filename, so WebM bytes written
         // as "in_photos.mp4" are still demuxed correctly.
-        const norm = await trimAndNormalize(ff, photosBlob, "photos.mp4", photoDurationSec, plan.maxHeight);
+        const norm = await trimAndNormalize(ff, photosBlob, "photos.mp4", photoDurationSec, plan.maxHeight, portraitWidth);
         parts.push(norm);
       }
     }
@@ -63,7 +70,7 @@ export async function renderVideoReel(
     for (let i = 0; i < plan.clips.length; i++) {
       const clip = plan.clips[i];
       const blob = await readBlob(clip.opfsPath);
-      parts.push(await trimAndNormalize(ff, blob, `clip${i}.mp4`, clip.trimSec, plan.maxHeight));
+      parts.push(await trimAndNormalize(ff, blob, `clip${i}.mp4`, clip.trimSec, plan.maxHeight, portraitWidth));
     }
 
     // Fix 4: guard against nothing to render.
@@ -78,7 +85,7 @@ export async function renderVideoReel(
     return { blob, durationSec };
   } finally {
     // Fix 1: cleanup runs on both success and error paths.
-    for (const p of [...parts, "concat.mp4", "reel.mp4", "music.mp3"]) {
+    for (const p of [...parts, "concat.mp4", "reel.mp4", "music.bin"]) {
       await ff.deleteFile(p).catch(() => {});
     }
   }
