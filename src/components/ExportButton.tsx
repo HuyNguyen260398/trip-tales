@@ -11,13 +11,23 @@ export default function ExportButton({ tripId, tripName }: { tripId: string; tri
     try {
       const zip = await exportTrip(tripId);
       const file = new File([zip], `${tripName.replace(/\s+/g, "-")}.zip`, { type: "application/zip" });
+
+      // Web Share API on Chromium-macOS (e.g. Edge, Chrome) optimistically returns
+      // canShare === true for file payloads but then rejects share() with
+      // NotAllowedError because the platform has no file-share target. Treat any
+      // non-Abort share failure as "platform can't share — download instead."
+      // AbortError = user dismissed the share sheet → respect the cancel.
+      let shared = false;
       if (navigator.canShare?.({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: tripName });
+          shared = true;
         } catch (e) {
-          if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
+          if (e instanceof DOMException && e.name === "AbortError") shared = true;
         }
-      } else {
+      }
+
+      if (!shared) {
         const url = URL.createObjectURL(zip);
         const a = document.createElement("a");
         a.href = url;
