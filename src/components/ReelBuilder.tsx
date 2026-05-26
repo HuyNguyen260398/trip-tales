@@ -26,9 +26,17 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
   useEffect(() => {
     if (!existing) return;
     console.log("[ReelBuilder] existing reel updated — musicId:", existing.musicId, "opfsPath:", existing.opfsPath);
+    let cancelled = false;
     let u: string | null = null;
-    objectUrl(existing.opfsPath).then((x) => { u = x; setPreviewUrl(x); });
-    return () => { if (u) URL.revokeObjectURL(u); };
+    objectUrl(existing.opfsPath).then((x) => {
+      if (cancelled) { URL.revokeObjectURL(x); return; }
+      u = x;
+      setPreviewUrl(x);
+    });
+    return () => {
+      cancelled = true;
+      if (u) URL.revokeObjectURL(u);
+    };
   }, [existing]);
 
   async function handleRender() {
@@ -89,7 +97,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
 
       {previewUrl && (
         <div className="flex flex-1 flex-col gap-2">
-          <video src={previewUrl} controls playsInline className="w-full rounded-xl bg-black" />
+          <video key={previewUrl} src={previewUrl} controls playsInline className="w-full rounded-xl bg-black" />
           <button onClick={handleShare} className="rounded-xl bg-neutral-800 p-3 text-sm">
             Share / download
           </button>
