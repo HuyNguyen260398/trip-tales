@@ -5,7 +5,7 @@
   "packageManager": "pnpm@11.2.2",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/gen-precache.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest"

@@ -1,8 +1,18 @@
-const CACHE = "triptales-shell-v1";
-const SHELL = ["/", "/manifest.webmanifest"];
+const CACHE = "triptales-shell-v2";
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        const manifest = await fetch("/precache-manifest.json", { cache: "no-store" });
+        const urls = await manifest.json();
+        await cache.addAll(["/", ...urls]);
+      } catch {
+        await cache.add("/"); // fall back to shell-only
+      }
+    })()
+  );
   self.skipWaiting();
 });
 
@@ -15,38 +25,23 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first for navigations (so updates show), cache fallback when offline.
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((res) => {
-          if (res.ok && res.type === "basic") {
-            const clone = res.clone();
-            event.waitUntil(caches.open(CACHE).then((c) => c.put(request, clone)));
-          }
-          return res;
-        })
-        .catch(() => caches.match(request).then((r) => r || caches.match("/")))
-    );
-    return;
-  }
+  // Don't cache map tiles / Nominatim / ffmpeg cores (cross-origin, large/volatile).
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     caches.match(request).then((cached) => {
-      if (cached) return cached;
-      return fetch(request).then((res) => {
-        if (
-          res.ok &&
-          res.type === "basic" &&
-          new URL(request.url).origin === self.location.origin
-        ) {
-          const clone = res.clone();
-          event.waitUntil(caches.open(CACHE).then((c) => c.put(request, clone)));
-        }
-        return res;
-      });
+      const network = fetch(request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(request, copy));
+          return res;
+        })
+        .catch(() => cached || caches.match("/"));
+      return cached || network;
     })
   );
 });
