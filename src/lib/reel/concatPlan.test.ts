@@ -12,6 +12,7 @@ describe("buildConcatPlan", () => {
     const media = [item("p1", "photo"), item("v2", "video"), item("p3", "photo"), item("v4", "video")];
     const plan = buildConcatPlan(media, DEFAULT_VIDEO_OPTS);
     expect(plan.hasPhotos).toBe(true);
+    expect(plan.clips).toHaveLength(2);
     expect(plan.clips.map((c) => c.mediaId)).toEqual(["v2", "v4"]);
   });
 
@@ -28,5 +29,11 @@ describe("buildConcatPlan", () => {
   it("carries resolution + clip caps through", () => {
     const plan = buildConcatPlan([item("v1", "video")], { maxClipSec: 5, maxHeight: 720 });
     expect(plan.maxHeight).toBe(720);
+  });
+
+  it("handles empty media array", () => {
+    const plan = buildConcatPlan([], DEFAULT_VIDEO_OPTS);
+    expect(plan.hasPhotos).toBe(false);
+    expect(plan.clips).toHaveLength(0);
   });
 });
