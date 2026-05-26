@@ -30,7 +30,6 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
 
   useEffect(() => {
     if (!existing) return;
-    console.log("[ReelBuilder] existing reel updated — musicId:", existing.musicId, "opfsPath:", existing.opfsPath);
     let cancelled = false;
     let u: string | null = null;
     objectUrl(existing.opfsPath).then((x) => {
@@ -116,7 +115,10 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
           </>
         )}
 
-        <button onClick={handleRender} disabled={status === "rendering" || photoCount === 0}
+        <button onClick={handleRender} disabled={
+          status === "rendering" ||
+          (photoCount === 0 && !(includeVideos && videoCount > 0))
+        }
           className="rounded-xl bg-white p-3 font-medium text-neutral-950 disabled:opacity-40">
           {status === "rendering" ? "Rendering…" : existing ? "Re-render reel" : "Make reel"}
         </button>
