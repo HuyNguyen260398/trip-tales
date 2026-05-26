@@ -55,28 +55,33 @@ export async function trimAndNormalize(
 export async function concatParts(ff: FFmpeg, parts: string[], out: string): Promise<string> {
   const list = parts.map((p) => `file '${p}'`).join("\n");
   await ff.writeFile("concat.txt", new TextEncoder().encode(list));
-  const code = await ff.exec(["-f", "concat", "-safe", "0", "-i", "concat.txt", "-c", "copy", out]);
-  if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
-  await ff.deleteFile("concat.txt");
+  try {
+    const code = await ff.exec(["-f", "concat", "-safe", "0", "-i", "concat.txt", "-c", "copy", out]);
+    if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
+  } finally {
+    try { await ff.deleteFile("concat.txt"); } catch { /* best-effort */ }
+  }
   return out;
 }
 
 /** Mux a music track over the (silent) concatenated video, ending at video length. */
 export async function muxAudio(ff: FFmpeg, video: string, music: Blob, out: string): Promise<Blob> {
   await ff.writeFile("music.mp3", await fetchFile(music));
-  const code = await ff.exec([
-    "-i", video, "-i", "music.mp3",
-    "-c:v", "copy", "-c:a", "aac", "-shortest",
-    "-map", "0:v:0", "-map", "1:a:0",
-    out,
-  ]);
-  if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
-  const data = await ff.readFile(out);
-  if (typeof data === "string") throw new Error("ffmpeg readFile returned string for binary output");
-  const blob = new Blob([(data.buffer as ArrayBuffer).slice(0)], { type: "video/mp4" });
+  let blob: Blob;
   try {
-    await ff.deleteFile("music.mp3");
-    await ff.deleteFile(out);
-  } catch { /* best-effort cleanup */ }
+    const code = await ff.exec([
+      "-i", video, "-i", "music.mp3",
+      "-c:v", "copy", "-c:a", "aac", "-shortest",
+      "-map", "0:v:0", "-map", "1:a:0",
+      out,
+    ]);
+    if (code !== 0) throw new Error(`ffmpeg exited with code ${code}`);
+    const data = await ff.readFile(out);
+    if (typeof data === "string") throw new Error("ffmpeg readFile returned string for binary output");
+    blob = new Blob([(data.buffer as ArrayBuffer).slice(0)], { type: "video/mp4" });
+  } finally {
+    try { await ff.deleteFile("music.mp3"); } catch { /* best-effort */ }
+    try { await ff.deleteFile(out); } catch { /* best-effort */ }
+  }
   return blob;
 }
