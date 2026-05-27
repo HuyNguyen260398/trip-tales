@@ -9,22 +9,24 @@
 ## Status
 
 - Author: Huy Nguyen (with Claude Code, Opus 4.7)
-- Date: 2026-05-27
-- Phase: pre-deploy planning (no Amplify resources exist yet)
-- Blocking PR: [#12 — feat(M6) → main](https://github.com/HuyNguyen260398/trip-tales/pull/12)
+- Date: 2026-05-27 (revised same day after M6 landed on main)
+- Phase: pre-deploy planning (no Amplify resources exist yet); code surface is full Phase 1
+- M6 on `main`: ✓ merged as commit `773a279` ([PR #12](https://github.com/HuyNguyen260398/trip-tales/pull/12))
+- `pnpm build` on main now runs `next build && node scripts/gen-precache.mjs`
 - Implementation plan: TBD (will live alongside this spec once written)
 
 ## Why we're writing this down
 
-Triptales has shipped M0–M5 to `main` and M6 is pending merge via PR #12. The
-master plan calls for **AWS Amplify Hosting** as the only AWS resource in
-Phase 1. The deploy is small in scope but easy to get wrong: cross-origin
-isolation headers (COOP/COEP) are non-trivial, the service-worker precache
-expects same-origin assets, and the M5 reel renderer fetches `ffmpeg.wasm`
-from a third-party CDN under `Cross-Origin-Embedder-Policy: require-corp` —
-a configuration combination that *only works if the headers and the build
-artefacts line up*. This document fixes all the decisions before we touch
-AWS so the first deploy is a configuration exercise, not an investigation.
+Triptales has shipped M0–M6 to `main` — the full Phase 1 feature surface is
+on the default branch and ready to deploy. The master plan calls for **AWS
+Amplify Hosting** as the only AWS resource in Phase 1. The deploy is small
+in scope but easy to get wrong: cross-origin isolation headers (COOP/COEP)
+are non-trivial, the service-worker precache expects same-origin assets, and
+the M5 reel renderer fetches `ffmpeg.wasm` from a third-party CDN under
+`Cross-Origin-Embedder-Policy: require-corp` — a configuration combination
+that *only works if the headers and the build artefacts line up*. This
+document fixes all the decisions before we touch AWS so the first deploy is
+a configuration exercise, not an investigation.
 
 ## Decisions captured
 
@@ -54,16 +56,27 @@ AWS so the first deploy is a configuration exercise, not an investigation.
 Every item must be true *before* the first `terraform apply` runs. Several are
 recoverable post-facto but cost a broken first deploy.
 
-1. **PR #12 (M6 → main) merged.** Without it, the deployed site has no
-   offline shell, no export, no settings page, and no `gen-precache.mjs` step
-   in `pnpm build`. The M6 deploy-verification checklist tests features that
-   wouldn't exist.
-2. **CI green on the merge commit.** `.github/workflows/ci.yaml` runs lint +
-   test + build on push to `main`. If CI fails post-merge, fix forward before
-   continuing.
-3. **`pnpm build` succeeds locally on merged `main`.** Confirm `out/` and
-   `out/precache-manifest.json` are produced. Catches anything the jsdom CI
-   missed.
+1. ~~**PR #12 (M6 → main) merged.**~~ **Done** — M6 landed on `main` as commit
+   `773a279` on 2026-05-27. All six M6 files (`ExportButton.tsx`,
+   `settings/page.tsx`, `gen-precache.mjs`, `export.ts`, `StorageMeter.tsx`,
+   `states.tsx`) are present, and `pnpm build` is wired to run
+   `next build && node scripts/gen-precache.mjs`.
+2. **CI green on the merge commit (`773a279`).** `.github/workflows/ci.yaml`
+   runs lint + test + build on push to `main`. Verify the run for `773a279`
+   is green before proceeding:
+   ```bash
+   gh run list --branch main --limit 3
+   ```
+   If CI failed post-merge, fix forward before continuing.
+3. **`pnpm build` succeeds locally on the merged `main`.** Confirm `out/` and
+   `out/precache-manifest.json` are produced:
+   ```bash
+   git checkout main && git pull
+   pnpm install --frozen-lockfile
+   pnpm build
+   test -f out/precache-manifest.json && echo "precache OK"
+   ```
+   Catches anything the jsdom CI missed.
 4. **AWS account ready:**
    - IAM principal with permissions (see `IAM policy` section below)
    - AWS CLI configured for `ap-southeast-1`
@@ -415,6 +428,6 @@ These don't need a design answer; the operator picks at the moment of
 - Post-deploy QA checklist: `docs/tasks/M6-deploy-verification.md`
 - Build config (existing): `amplify.yml`, `customHttp.yml`
 - Service worker: `public/sw.js`
-- Precache generator: `scripts/gen-precache.mjs` (lands with M6)
+- Precache generator: `scripts/gen-precache.mjs`
 - ffmpeg loader: `src/lib/reel/ffmpeg.ts` (the unpkg risk surface)
-- PR re-targeting M6 → main: https://github.com/HuyNguyen260398/trip-tales/pull/12
+- PR that re-targeted M6 → main: https://github.com/HuyNguyen260398/trip-tales/pull/12 (merged as commit `773a279`)
