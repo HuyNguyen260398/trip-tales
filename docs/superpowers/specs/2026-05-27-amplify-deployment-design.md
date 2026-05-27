@@ -13,7 +13,10 @@
 - Phase: pre-deploy planning (no Amplify resources exist yet); code surface is full Phase 1
 - M6 on `main`: ✓ merged as commit `773a279` ([PR #12](https://github.com/HuyNguyen260398/trip-tales/pull/12))
 - `pnpm build` on main now runs `next build && node scripts/gen-precache.mjs`
-- Implementation plan: TBD (will live alongside this spec once written)
+- Implementation plans (execute in order; each is independently testable):
+  1. [`../plans/2026-05-27-amplify-tf-bootstrap.md`](../plans/2026-05-27-amplify-tf-bootstrap.md) — Terraform bootstrap (S3 + DynamoDB state backend)
+  2. [`../plans/2026-05-27-amplify-tf-stack.md`](../plans/2026-05-27-amplify-tf-stack.md) — Terraform Amplify stack (app + branch + PAT)
+  3. [`../plans/2026-05-27-amplify-first-deploy.md`](../plans/2026-05-27-amplify-first-deploy.md) — first deploy watch + smoke test + M6 checklist run + ship
 
 ## Why we're writing this down
 
