@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useLiveQuery } from "@/hooks/useLiveQuery";
 import { listTrips } from "@/lib/trips";
+import { Spinner, EmptyState } from "./states";
 
 export default function TripList() {
   const trips = useLiveQuery(() => listTrips(), []);
 
-  if (trips === undefined) return <p className="text-neutral-500">Loading…</p>;
+  if (trips === undefined) return <Spinner />;
   if (trips.length === 0) {
-    return <p className="text-neutral-500">No trips yet. Create your first one.</p>;
+    return <EmptyState title="No trips yet" hint="Create your first one." />;
   }
 
   return (

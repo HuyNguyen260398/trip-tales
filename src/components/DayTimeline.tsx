@@ -6,15 +6,16 @@ import { useLiveQuery } from "@/hooks/useLiveQuery";
 import { mediaByDay } from "@/lib/media";
 import MediaThumb from "./MediaThumb";
 import MediaEditDialog from "./MediaEditDialog";
+import { Spinner, EmptyState } from "./states";
 import type { Media } from "@/lib/types";
 
 export default function DayTimeline({ tripId }: { tripId: string }) {
   const groups = useLiveQuery(() => mediaByDay(tripId), [tripId]);
   const [editing, setEditing] = useState<Media | null>(null);
 
-  if (groups === undefined) return <p className="text-neutral-500">Loading…</p>;
+  if (groups === undefined) return <Spinner />;
   if (groups.length === 0) {
-    return <p className="text-neutral-500">No media yet. Add some to get started.</p>;
+    return <EmptyState title="No media yet" hint="Add some to get started." />;
   }
 
   return (

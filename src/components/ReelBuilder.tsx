@@ -11,6 +11,7 @@ import { extForMime } from "@/lib/reel/codec";
 import { saveReel, getReelForDay } from "@/lib/reels";
 import { objectUrl } from "@/lib/opfs";
 import { TRACKS } from "@/lib/music";
+import { ErrorState } from "./states";
 
 type Status = "idle" | "rendering" | "error";
 
@@ -123,7 +124,7 @@ export default function ReelBuilder({ tripId, dayKey }: { tripId: string; dayKey
           {status === "rendering" ? "Rendering…" : existing ? "Re-render reel" : "Make reel"}
         </button>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
+        {error && <ErrorState message={error} onRetry={handleRender} />}
       </div>
 
       {previewUrl && (
