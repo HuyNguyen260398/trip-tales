@@ -9,6 +9,7 @@ import TripForm from "@/components/TripForm";
 import MediaImporter from "@/components/MediaImporter";
 import DayTimeline from "@/components/DayTimeline";
 import TripNameSuggest from "@/components/TripNameSuggest";
+import ExportButton from "@/components/ExportButton";
 
 function TripDetail() {
   const router = useRouter();
@@ -49,6 +50,7 @@ function TripDetail() {
             <button onClick={() => setEditing(true)} className="rounded-xl bg-neutral-800 px-4 py-2 text-sm">
               Edit
             </button>
+            <ExportButton tripId={trip.id} tripName={trip.name} />
             <button
               onClick={async () => {
                 if (confirm(`Delete "${trip.name}"? This removes its media too.`)) {

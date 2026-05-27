@@ -8,6 +8,9 @@ export interface Track {
 export const TRACKS: Track[] = [
   { id: "sunrise", title: "Sunrise", src: "/music/sunrise.wav" },
   { id: "wander", title: "Wander", src: "/music/wander.wav" },
+  { id: "drift", title: "Drift", src: "/music/drift.wav" },
+  { id: "pulse", title: "Pulse", src: "/music/pulse.wav" },
+  { id: "glow", title: "Glow", src: "/music/glow.wav" },
 ];
 
 export function getTrack(id: string): Track | undefined {
